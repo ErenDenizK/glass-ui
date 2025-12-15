@@ -1,0 +1,31 @@
+/**
+ * Border glow effect using ::before pseudo-element
+ * Inspired by Kevin Powell's glassmorphism technique
+ */
+
+.glass-border-glow::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px; /* Border width */
+  
+  /* Gradient border */
+  background: linear-gradient(
+    180deg,
+    var(--border-gradient-top, hsl(240, 5%, 28%)),
+    var(--border-gradient-bottom, hsl(240, 5%, 22%))
+  ) border-box;
+  
+  /* Mask to show only border */
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) padding-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: 
+    linear-gradient(#fff 0 0) padding-box, 
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+}
+

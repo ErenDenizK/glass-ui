@@ -1,0 +1,444 @@
+# .cursorrules
+
+<!-- 
+This file helps AI assistants (like Cursor, GitHub Copilot) understand 
+our project structure and coding standards. It's also useful for human 
+contributors to understand our workflow.
+
+For general contribution guidelines, see CONTRIBUTING.md
+-->
+
+# Glass UI - AI Assistant & Development Guidelines
+
+## Project Context
+
+This is **glass-ui**, a modern glassmorphism UI component library for React. Built with TypeScript, Tailwind CSS, and Framer Motion.
+
+**Status:** Early development (pre-v1.0)
+**Maintainer:** Eren Deniz Karataş (@ErenDenizK)
+**License:** MIT
+
+---
+
+## Our Team Structure
+
+**Mert (Product Lead + Architect):**
+- Makes strategic decisions
+- Designs component APIs
+- Manages files and Git
+- Final approval on all code
+
+**Claude (Co-Lead + Technical Advisor):**
+- Provides technical guidance
+- Reviews code quality
+- Writes Cursor prompts
+- Ensures best practices
+
+**Cursor AI (Implementation Engine):**
+- Writes code based on prompts
+- Implements tests
+- Generates TypeScript types
+- Follows team standards
+
+---
+
+## Critical Documents
+
+Before writing ANY code, read these:
+
+1. **README.md** - Project overview
+2. **DECISIONS.md** - Architectural decisions (NON-NEGOTIABLE)
+3. **docs/PHILOSOPHY.md** - Design principles
+4. **CONTRIBUTING.md** - Code standards
+
+Key decisions you MUST follow:
+- Blur max 20px (hard limit)
+- Max 4 concurrent glass elements
+- WCAG AA contrast (4.5:1 minimum)
+- TypeScript strict mode
+- 70%+ test coverage
+
+---
+
+## Engineering Disciplines
+
+### 1. Deep Planning First
+- Architecture before code
+- "Why?" must be answered
+- Design doc for every component
+
+### 2. Incremental Depth
+- Start simple, expand as needed
+- "Build for 2x, not 10x"
+- Every addition must be organic
+
+### 3. Informed Minimal
+- Cover 80% of needs, leave 20% for v2
+- Minimal API changes
+- Add optional params, don't change existing
+
+### 4. Micro-Completeness
+- Every piece independent but composable
+- "Done" = Functional + Extendable + GitHub-ready
+
+### 5. Composition Over Duplication
+- Components use each other
+- Shared building blocks
+- Atomic Design pattern (Atoms → Molecules → Organisms)
+
+---
+
+## Code Standards
+
+### TypeScript
+```typescript
+// ✅ GOOD - Explicit types
+interface ButtonProps {
+  variant: 'primary' | 'secondary' | 'danger'
+  size?: 'sm' | 'md' | 'lg'
+  children: ReactNode
+}
+
+// ❌ BAD - any types
+function Button(props: any) { }
+
+// ✅ GOOD - Strict mode compliant
+const value: string | null = getValue()
+if (value === null) return
+
+// ❌ BAD - Implicit any
+const value = getValue()
+```
+
+**Rules:**
+- Strict mode ALWAYS enabled
+- No `any` (use `unknown` if needed)
+- Explicit return types on functions
+- No unused variables
+- ESLint warnings = 0
+
+---
+
+### React Patterns
+```tsx
+// ✅ GOOD - Composition
+interface GlassContainerProps {
+  glass?: boolean | GlassConfig
+  children: ReactNode
+}
+
+export const GlassContainer = ({ 
+  glass = true, 
+  children 
+}: GlassContainerProps) => {
+  return <div className={cn(styles)}>{children}</div>
+}
+
+// ✅ GOOD - Controlled + Uncontrolled
+interface InputProps {
+  value?: string          // Controlled
+  defaultValue?: string   // Uncontrolled
+  onChange?: (value: string) => void
+}
+
+// ❌ BAD - Magic behavior
+const Button = ({ children }) => {
+  // Auto-detects color from content??? NO!
+}
+```
+
+**Rules:**
+- Functional components only
+- Props interfaces always exported
+- No default exports (named exports only)
+- Children typing required
+
+---
+
+### Performance
+```typescript
+// ✅ GOOD - Enforced limits
+const MAX_BLUR = 20  // px
+const MAX_CONCURRENT_GLASS = 4
+
+if (blurValue > MAX_BLUR) {
+  console.warn(`Blur ${blurValue}px exceeds limit of ${MAX_BLUR}px`)
+  blurValue = MAX_BLUR
+}
+
+// ✅ GOOD - GPU acceleration
+const glassStyles = {
+  backdropFilter: `blur(${blur}px)`,
+  transform: 'translateZ(0)', // Force GPU
+}
+
+// ❌ BAD - No validation
+const styles = { backdropFilter: `blur(${props.blur}px)` }
+```
+
+**Rules:**
+- Blur validation MANDATORY
+- GPU acceleration automatic
+- will-change used carefully (add on hover, remove after)
+- Performance budgets enforced
+
+---
+
+### Testing
+```typescript
+// ✅ GOOD - 3 test types minimum
+describe('Button', () => {
+  it('renders correctly', () => {
+    // Render test
+  })
+  
+  it('handles click events', () => {
+    // Interaction test
+  })
+  
+  it('handles invalid props gracefully', () => {
+    // Edge case test
+  })
+})
+
+// ❌ BAD - Only happy path
+describe('Button', () => {
+  it('works', () => { })
+})
+```
+
+**Rules:**
+- Minimum 3 tests per component
+- 70%+ coverage required
+- Test edge cases
+- No component ships without tests
+
+---
+
+### File Structure
+```
+src/
+├── glass-system/
+│   ├── tokens/
+│   │   ├── blur.ts          # Export const, not default
+│   │   ├── colors.ts
+│   │   └── index.ts         # Barrel export
+│   ├── primitives/
+│   │   ├── GlassContainer/
+│   │   │   ├── GlassContainer.tsx
+│   │   │   ├── GlassContainer.test.tsx
+│   │   │   ├── types.ts
+│   │   │   └── index.ts
+│   └── index.ts
+├── components/
+│   ├── Button/
+│   │   ├── Button.tsx
+│   │   ├── Button.test.tsx
+│   │   ├── types.ts
+│   │   └── index.ts
+```
+
+**Rules:**
+- One component per folder
+- Co-located tests
+- Barrel exports (index.ts)
+- Named exports only
+
+---
+
+### Git Commits
+```bash
+# ✅ GOOD - Conventional commits
+git commit -m "feat(tokens): Add blur and opacity tokens"
+git commit -m "fix(GlassContainer): Correct blur validation"
+git commit -m "docs: Update README with examples"
+git commit -m "test(Button): Add interaction tests"
+
+# ❌ BAD - Vague messages
+git commit -m "updates"
+git commit -m "fix stuff"
+```
+
+**Format:** `type(scope): message`
+
+**Types:**
+- `feat` - New feature
+- `fix` - Bug fix
+- `docs` - Documentation
+- `test` - Testing
+- `refactor` - Code refactor
+- `perf` - Performance
+- `chore` - Maintenance
+
+---
+
+## Non-Negotiable Rules
+
+### 1. No Code Without Context
+- Every function/component has docstring
+- Explain "why it exists", not "what it does"
+- Design decisions documented
+
+### 2. Tests Are Mandatory
+- Minimum 3 tests per component
+- 70%+ coverage
+- Component not "done" without tests
+
+### 3. No Premature Abstraction
+- **Rule of Three:** Don't abstract until 3rd use
+- First 3 components = independent
+- Wait for patterns to emerge
+
+### 4. README-Driven Development
+- README written BEFORE code
+- API designed from user perspective
+- If no usage example, don't build feature
+
+### 5. Explicit Over Implicit
+- No magic behavior
+- Minimal hidden defaults
+- Developer control maximum
+
+### 6. Fail Fast, Fail Loud
+- TypeScript strict mode
+- Throw errors, don't console.error
+- Runtime validation where critical
+
+### 7. Performance is a Feature
+- Bundle size tracked
+- Lazy loading considered
+- Performance regressions prevented
+
+---
+
+## Mobile-First Strategy
+```typescript
+// ✅ GOOD - Responsive tokens
+const blur = {
+  mobile: '8px',    // Conservative
+  desktop: '12px'   // Enhanced
+}
+
+// ✅ GOOD - Device detection
+const isLowEnd = detectLowEndDevice()
+const maxBlur = isLowEnd ? 12 : 20
+
+// ✅ GOOD - Prefers-reduced-motion
+@media (prefers-reduced-motion: reduce) {
+  .glass { backdrop-filter: none; }
+}
+```
+
+**Rules:**
+- Design for mobile, enhance for desktop
+- Lower blur on mobile (8-12px max)
+- Touch devices: no hover, no glow
+- Battery-conscious animations
+
+---
+
+## Accessibility Standards
+```tsx
+// ✅ GOOD - Solid background for text
+<GlassContainer>
+  <div className="bg-white/90 p-4">
+    <p>Readable text</p>
+  </div>
+</GlassContainer>
+
+// ❌ BAD - Text on pure glass
+<GlassContainer>
+  <p>Hard to read</p>
+</GlassContainer>
+```
+
+**Rules:**
+- WCAG AA minimum (4.5:1 contrast)
+- Text always on solid/high-opacity background
+- Keyboard navigation required
+- Screen reader semantic HTML
+- Reduced motion support
+
+---
+
+## When in Doubt
+
+1. **Check DECISIONS.md** - Is there an ADR for this?
+2. **Ask for clarification** - Don't guess, confirm
+3. **Start simple** - Can always add complexity later
+4. **Measure performance** - Before and after
+5. **Test accessibility** - Run contrast checker
+
+---
+
+## Error Handling
+```typescript
+// ✅ GOOD - Helpful errors
+if (blur > MAX_BLUR) {
+  throw new Error(
+    `Blur value ${blur}px exceeds maximum ${MAX_BLUR}px. ` +
+    `High blur values cause exponential performance cost. ` +
+    `See: DECISIONS.md#4-performance-blur-limits`
+  )
+}
+
+// ❌ BAD - Cryptic errors
+if (blur > MAX_BLUR) {
+  throw new Error('Invalid blur')
+}
+```
+
+**Rules:**
+- Errors are user-facing (developer = user)
+- Explain WHY, not just WHAT
+- Link to docs when relevant
+- Suggest solutions
+
+---
+
+## Output Expectations
+
+When implementing code:
+
+1. **Follow the prompt exactly** - Don't add "nice to haves"
+2. **Include tests** - Always, no exceptions
+3. **Add TypeScript types** - Explicit, exported
+4. **Write docstrings** - Brief but clear
+5. **Use existing patterns** - Check similar code first
+6. **Ask before major decisions** - Don't assume
+
+---
+
+## Communication Style
+
+**With the team:**
+- Ask clarifying questions upfront
+- Explain trade-offs when relevant
+- Flag potential issues early
+- Suggest alternatives when better approaches exist
+
+**In code comments:**
+- Brief and purposeful
+- Explain "why", not "what"
+- Link to DECISIONS.md when relevant
+
+---
+
+## Remember
+
+- **Quality over speed** - It's a hobby project, we have time
+- **Learning is encouraged** - Try new patterns, experiment
+- **User = Developer** - We're building for other devs
+- **Performance matters** - 60fps is non-negotiable
+- **Accessibility matters** - Everyone should use our components
+
+---
+
+**Note for Human Contributors:**
+This file is optimized for AI assistants but also serves as our 
+comprehensive development guide. Welcome to the team! 👋
+
+---
+
+**Last Updated:** December 15, 2025
+**Version:** 1.0.0

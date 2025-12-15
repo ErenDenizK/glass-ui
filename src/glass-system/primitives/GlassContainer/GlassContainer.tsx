@@ -49,10 +49,12 @@ export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
     const finalOpacity = hasBackdropFilter ? opacityValue : Math.min(opacityValue + 0.2, 0.9)
     
     // Replace opacity in hsla string
-    const backgroundColor = colorToken.glass.replace(
-      /[\d.]+(?=\)$)/,
-      finalOpacity.toString()
-    )
+    // Extract HSL values and rebuild with new opacity for robustness
+    // Handles both hsl() and hsla() formats
+    const hslaMatch = colorToken.glass.match(/hsla?\(([^)]+)\)/)
+    const backgroundColor = hslaMatch
+      ? `hsla(${hslaMatch[1].split(',').slice(0, 3).join(',').trim()}, ${finalOpacity})`
+      : colorToken.glass // Fallback: use original if format is unexpected
     
     const componentProps: React.HTMLAttributes<HTMLElement> = {
       className: cn(
@@ -97,6 +99,7 @@ export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
     }
     
     // Render based on Component type with proper ref handling
+    // Forward ref to all element types
     if (Component === 'div') {
       return (
         <div ref={ref} {...componentProps}>
@@ -105,10 +108,10 @@ export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
       )
     }
     
-    // For other HTML elements, use type assertion
+    // For other HTML elements, forward ref with proper typing
     const Element = Component as 'section' | 'article' | 'aside' | 'header' | 'footer' | 'main' | 'nav'
     return (
-      <Element {...componentProps}>
+      <Element ref={ref as React.Ref<HTMLElement>} {...componentProps}>
         {children}
       </Element>
     )

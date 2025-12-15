@@ -12,9 +12,10 @@ dist/
 build/
 *.tsbuildinfo
 
-# Playground (local testing only)
-playground/
-*.local.*
+# Playground - temporary files only
+playground/*.local.*
+playground/dist/
+playground/node_modules/
 .playground/
 
 # Environment

@@ -1,3 +1,4 @@
+import React from 'react'
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { GlassContainer } from './GlassContainer'
@@ -83,6 +84,21 @@ describe('GlassContainer', () => {
     )
     
     expect(container.querySelector('section')).toBeInTheDocument()
+  })
+  
+  it('forwards ref correctly for div element', () => {
+    const ref = React.createRef<HTMLDivElement>()
+    render(<GlassContainer ref={ref}>Content</GlassContainer>)
+    
+    expect(ref.current).toBeInstanceOf(HTMLDivElement)
+  })
+  
+  it('forwards ref correctly for non-div elements', () => {
+    const ref = React.createRef<HTMLDivElement>()
+    render(<GlassContainer as="section" ref={ref}>Content</GlassContainer>)
+    
+    expect(ref.current).toBeInstanceOf(HTMLElement)
+    expect(ref.current?.tagName.toLowerCase()).toBe('section')
   })
 })
 

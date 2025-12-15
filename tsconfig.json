@@ -20,10 +20,11 @@
     "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "glass-ui": ["./src/index.ts"]
     }
   },
-  "include": ["src"],
+  "include": ["src", "playground"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
 

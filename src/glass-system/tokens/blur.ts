@@ -9,18 +9,22 @@ export const MAX_BLUR = 20 // px - Hard limit
 
 export const blur = {
   none: '0px',
-  xs: '4px',     // Minimal (stats, subtle effects)
-  sm: '8px',     // Cards, light glass
-  md: '12px',    // DEFAULT - buttons, modals (optimal)
-  lg: '20px',    // MAX - overlays, backgrounds
+  subtle: '2px',  // Barely visible, very soft
+  xs: '4px',      // Light blur
+  sm: '6px',      // Soft blur
+  md: '10px',     // DEFAULT - optimal blur
+  lg: '16px',     // Heavy blur
+  max: '20px',    // MAX - extreme blur (performance limit)
 } as const
 
 export const blurMobile = {
   none: '0px',
-  xs: '2px',     // Half of desktop
+  subtle: '1px',
+  xs: '2px',
   sm: '4px',
-  md: '8px',     // Conservative for mobile
-  lg: '12px',    // MAX for mobile
+  md: '6px',      // Conservative for mobile
+  lg: '10px',
+  max: '12px',     // MAX for mobile
 } as const
 
 export type BlurValue = keyof typeof blur

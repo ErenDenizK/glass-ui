@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { BlurValue, OpacityValue, ColorName, RadiusValue, ShadowValue } from '../../tokens'
+import type { PresetName } from '../../presets/types'
 
 /**
  * Glass effect configuration
@@ -24,9 +25,10 @@ export interface GlassContainerProps {
    * - `true`: Use default glass effect (blur: 'md', opacity: 0.25)
    * - `false`: Solid background, no glass effect
    * - `GlassConfig`: Custom glass configuration
+   * - `PresetName`: Use context-aware preset
    * @default true
    */
-  glass?: boolean | GlassConfig
+  glass?: boolean | GlassConfig | PresetName
   
   /**
    * Color variant
@@ -65,6 +67,11 @@ export interface GlassContainerProps {
    * HTML element to render as
    * @default 'div'
    */
-  as?: 'div' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'main' | 'nav'
+  as?: 'div' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'main' | 'nav' | 'button'
+  
+  /**
+   * Disabled state (for button elements)
+   */
+  disabled?: boolean
 }
 

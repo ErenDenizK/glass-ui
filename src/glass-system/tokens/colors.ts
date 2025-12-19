@@ -21,7 +21,7 @@ export const colors = {
   neutral: {
     base: 'hsl(240, 5%, 15%)',
     glass: 'hsla(240, 5%, 15%, 0.25)',
-    glow: 'hsla(240, 5%, 35%, 0.2)',
+    glow: 'hsla(240, 10%, 60%, 0.4)',  // Increased saturation + lightness for visibility
     text: 'hsl(240, 21%, 96%)',
     border: ['hsl(240, 5%, 28%)', 'hsl(240, 5%, 22%)'],
   },
@@ -29,7 +29,7 @@ export const colors = {
   primary: {
     base: 'hsl(217, 91%, 60%)',        // Electric blue
     glass: 'hsla(217, 91%, 60%, 0.15)',
-    glow: 'hsla(217, 91%, 70%, 0.3)',
+    glow: 'hsla(217, 91%, 65%, 0.5)',  // Increased opacity + lightness
     text: 'hsl(217, 100%, 97%)',
     border: ['hsl(217, 91%, 65%)', 'hsl(217, 91%, 50%)'],
   },
@@ -37,7 +37,7 @@ export const colors = {
   success: {
     base: 'hsl(142, 76%, 45%)',        // Vibrant green
     glass: 'hsla(142, 76%, 45%, 0.15)',
-    glow: 'hsla(142, 76%, 55%, 0.3)',
+    glow: 'hsla(142, 76%, 50%, 0.5)',  // Increased opacity + lightness
     text: 'hsl(142, 76%, 97%)',
     border: ['hsl(142, 76%, 55%)', 'hsl(142, 76%, 35%)'],
   },
@@ -45,7 +45,7 @@ export const colors = {
   danger: {
     base: 'hsl(0, 84%, 60%)',          // Bold red
     glass: 'hsla(0, 84%, 60%, 0.15)',
-    glow: 'hsla(0, 84%, 70%, 0.3)',
+    glow: 'hsla(0, 84%, 65%, 0.5)',  // Increased opacity + lightness
     text: 'hsl(0, 100%, 97%)',
     border: ['hsl(0, 84%, 65%)', 'hsl(0, 84%, 50%)'],
   },
@@ -53,7 +53,7 @@ export const colors = {
   warning: {
     base: 'hsl(38, 92%, 55%)',         // Warm orange
     glass: 'hsla(38, 92%, 55%, 0.15)',
-    glow: 'hsla(38, 92%, 65%, 0.3)',
+    glow: 'hsla(38, 92%, 60%, 0.5)',  // Increased opacity + lightness
     text: 'hsl(38, 100%, 97%)',
     border: ['hsl(38, 92%, 65%)', 'hsl(38, 92%, 45%)'],
   },
@@ -61,7 +61,7 @@ export const colors = {
   accent: {
     base: 'hsl(271, 81%, 56%)',        // Playful purple
     glass: 'hsla(271, 81%, 56%, 0.15)',
-    glow: 'hsla(271, 81%, 66%, 0.3)',
+    glow: 'hsla(271, 81%, 62%, 0.5)',  // Increased opacity + lightness
     text: 'hsl(271, 100%, 97%)',
     border: ['hsl(271, 81%, 66%)', 'hsl(271, 81%, 46%)'],
   },

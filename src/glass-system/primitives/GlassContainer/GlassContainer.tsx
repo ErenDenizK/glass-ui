@@ -26,7 +26,7 @@ import type { GlassContainerProps } from './types'
  * </GlassContainer>
  * ```
  */
-export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
+export const GlassContainer = forwardRef<HTMLDivElement | HTMLButtonElement, GlassContainerProps>(
   (
     {
       glass = true,
@@ -56,13 +56,20 @@ export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
       ? `hsla(${hslaMatch[1].split(',').slice(0, 3).join(',').trim()}, ${finalOpacity})`
       : colorToken.glass // Fallback: use original if format is unexpected
     
-    const componentProps: React.HTMLAttributes<HTMLElement> = {
+    // Helper to adjust opacity in HSL string for layered glow effects
+    const adjustGlowOpacity = (glowColor: string, newOpacity: number): string => {
+      const match = glowColor.match(/hsla?\(([^)]+)\)/)
+      if (match) {
+        const hslValues = match[1].split(',').slice(0, 3).join(',').trim()
+        return `hsla(${hslValues}, ${newOpacity})`
+      }
+      return glowColor
+    }
+    
+    const componentProps: React.HTMLAttributes<HTMLElement> & { disabled?: boolean } = {
       className: cn(
         // Base styles
         'relative',
-        
-        // Border glow (::before will be added via styles)
-        borderGlow && 'glass-border-glow',
         
         // Custom classes
         className
@@ -71,8 +78,21 @@ export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
         // Border radius
         borderRadius: radiusValue !== 'none' ? radius[radiusValue] : undefined,
         
-        // Shadow
-        boxShadow: shadow !== 'none' ? shadows[shadow] : undefined,
+        // Shadow and border glow (multi-layered ethereal effect)
+        boxShadow: borderGlow
+          ? [
+              shadow !== 'none' ? shadows[shadow] : null,
+              // Inner highlights (glass edge refraction)
+              'inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)',
+              'inset 0 -1px 1px 0 rgba(255, 255, 255, 0.05)',
+              // Layered glow (tight to wide, decreasing opacity)
+              `0 0 20px 2px ${colorToken.glow}`,
+              `0 0 40px 4px ${adjustGlowOpacity(colorToken.glow, 0.2)}`,
+              `0 0 60px 6px ${adjustGlowOpacity(colorToken.glow, 0.1)}`,
+            ]
+              .filter(Boolean)
+              .join(', ')
+          : shadow !== 'none' ? shadows[shadow] : undefined,
         
         // Background color with opacity
         backgroundColor,
@@ -86,11 +106,10 @@ export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
         // GPU acceleration
         transform: 'translateZ(0)',
         
-        // Border glow variables (for ::before pseudo-element)
+        // Border glow - Subtle border (structure without dominance)
         ...(borderGlow && {
-          '--border-gradient-top': colorToken.border[0],
-          '--border-gradient-bottom': colorToken.border[1],
-        } as React.CSSProperties),
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+        }),
         
         // User styles override
         ...style,
@@ -102,9 +121,17 @@ export const GlassContainer = forwardRef<HTMLDivElement, GlassContainerProps>(
     // Forward ref to all element types
     if (Component === 'div') {
       return (
-        <div ref={ref} {...componentProps}>
+        <div ref={ref as React.Ref<HTMLDivElement>} {...componentProps}>
           {children}
         </div>
+      )
+    }
+    
+    if (Component === 'button') {
+      return (
+        <button ref={ref as React.Ref<HTMLButtonElement>} {...componentProps}>
+          {children}
+        </button>
       )
     }
     

@@ -160,19 +160,98 @@ primary: {
 
 **Decision:** Provide smart presets for common UI patterns
 
+**Context:**
+- Components need consistent defaults
+- Avoid premature over-engineering
+- Reduce boilerplate by 80%
+
 **Presets:**
-- `modal` - High blur, strong opacity (background overlay)
-- `button` - Medium blur, interactive glow
-- `card` - Low blur, subtle effect (content visible)
-- `stats` - Minimal blur (numbers readable)
-- `nav` - Medium blur, sticky behavior
-- `background` - High blur, very subtle opacity
+- `modal` - High blur (lg), strong opacity (0.7), border glow (dialogs, overlays)
+- `button` - Medium blur (md), medium opacity (0.25), border glow (interactive buttons)
+- `card` - Low blur (sm), subtle opacity (0.15), no glow (content cards)
+- `nav` - Medium blur (md), medium-high opacity (0.5), no glow (navigation bars)
+- `stats` - Very subtle blur (xs), very low opacity (0.08), no glow (metrics, KPIs)
+- `background` - Subtle blur (subtle), minimal opacity (0.05), no glow (ambient sections)
+
+**Implementation:**
+- Preset strings accepted in `GlassContainer` `glass` prop
+- Type-safe `PresetName` union type
+- Runtime validation with fallback to defaults
+- Playground integration for visual testing
 
 **Rationale:**
 - Developer doesn't need to understand glass theory
 - Consistent patterns across apps
-- Easy to override when needed
-- Self-documenting API
+- Easy to override when needed (`glass={{ blur: 'lg' }}` still works)
+- Self-documenting API (`glass="modal"` is clearer than config object)
+
+**Alternatives Considered:**
+- Component-specific presets (rejected: inconsistent)
+- No presets (rejected: too much boilerplate)
+- Full animation presets (deferred: Rule of Three)
+
+**Trade-offs:**
+- ✅ 80% reduction in boilerplate
+- ✅ Consistent defaults across components
+- ❌ Less flexibility than full config (but override available)
+- ❌ Need to maintain preset values
+
+---
+
+## 8.5. Animation Foundation (Thin Layer)
+
+**Decision:** Implement thin animation wrapper before components
+
+**Date:** December 15, 2025
+
+**Context:**
+- Components need consistent animations
+- Animation should enhance glass, not dominate
+- Avoid premature over-engineering
+
+**Approach:**
+- `AnimatedContainer` - Thin wrapper around Framer Motion
+- 4 animation presets: `fadeIn`, `slideUp`, `scale`, `hover`
+- Material Design 3 easing curves
+- Animation hooks: `useAnimatedPress()`, `useAnimatedHover()`
+- Advanced animations deferred to v0.2
+
+**Implementation:**
+```typescript
+// Simple preset usage
+<AnimatedContainer preset="fadeIn">Content</AnimatedContainer>
+
+// Hover animation
+<AnimatedContainer enableHover>Hoverable</AnimatedContainer>
+
+// Custom animation (overrides preset)
+<AnimatedContainer animate={{ opacity: 0.5 }}>Custom</AnimatedContainer>
+```
+
+**Rationale:**
+- Presets reduce boilerplate 80%
+- Basic animations sufficient for v0.1
+- Rule of Three: assess after 3 components
+- Focus on glass quality, not animation complexity
+- Thin layer allows escape hatch (custom `animate` prop)
+
+**Alternatives Considered:**
+- Full animation system first (rejected: over-engineering)
+- No animation (rejected: components feel static)
+- Component-specific animation (rejected: inconsistent)
+- CSS-only animations (rejected: less flexible than Framer Motion)
+
+**Trade-offs:**
+- ✅ Simple, consistent animations
+- ✅ Material Design 3 compliant
+- ✅ Easy to extend later
+- ❌ Limited to 4 presets initially
+- ❌ Advanced animations need custom code
+
+**Future:**
+- Add more presets based on component needs
+- Consider gesture animations (drag, swipe)
+- Evaluate after 3 components (Button, Card, Input)
 
 ---
 

@@ -1,31 +1,14 @@
 /**
- * Border glow effect using ::before pseudo-element
- * Inspired by Kevin Powell's glassmorphism technique
+ * Border glow effect - DEPRECATED
+ * 
+ * Now using box-shadow + border-image approach directly in component styles.
+ * This file is kept for reference but the CSS mask technique is no longer used.
+ * 
+ * The new approach:
+ * - box-shadow for outer glow (immediately visible)
+ * - border-image for gradient border (CSS native)
+ * - inset box-shadow for inner highlight
+ * 
+ * See GlassContainer.tsx for implementation.
  */
-
-.glass-border-glow::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  inset: 0;
-  border-radius: inherit;
-  padding: 1px; /* Border width */
-  
-  /* Gradient border */
-  background: linear-gradient(
-    180deg,
-    var(--border-gradient-top, hsl(240, 5%, 28%)),
-    var(--border-gradient-bottom, hsl(240, 5%, 22%))
-  ) border-box;
-  
-  /* Mask to show only border */
-  -webkit-mask: 
-    linear-gradient(#fff 0 0) padding-box, 
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask: 
-    linear-gradient(#fff 0 0) padding-box, 
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-}
 

@@ -1,7 +1,7 @@
 /**
  * Glass System - Core glassmorphism foundation
  * 
- * Exports tokens, primitives, and utilities for building glass UI
+ * Exports tokens, primitives, presets, and utilities for building glass UI
  */
 
 // Tokens
@@ -10,6 +10,6 @@ export * from './tokens'
 // Primitives
 export * from './primitives'
 
-// Presets (empty for now, will be added later)
-// export * from './presets'
+// Presets
+export * from './presets'
 

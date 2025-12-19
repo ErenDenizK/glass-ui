@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { GlassContainer } from 'glass-ui'
-import type { ColorName, BlurValue, RadiusValue, ShadowValue } from 'glass-ui'
+import { GlassContainer, listPresets } from 'glass-ui'
+import type { ColorName, BlurValue, RadiusValue, ShadowValue, PresetName } from 'glass-ui'
 
 // Background cycling - local assets only
 const backgrounds = [
@@ -19,6 +19,10 @@ export default function Interactive() {
   const [radius, setRadius] = useState<RadiusValue>('lg')
   const [shadow, setShadow] = useState<ShadowValue>('sm')
   const [contentType, setContentType] = useState<'short' | 'medium' | 'long'>('medium')
+  
+  // Preset state
+  const [usePreset, setUsePreset] = useState(false)
+  const [selectedPreset, setSelectedPreset] = useState<PresetName>('button')
   
   // Copy feedback state
   const [copied, setCopied] = useState(false)
@@ -69,13 +73,30 @@ export default function Interactive() {
     setRadius('lg')
     setShadow('sm')
     setContentType('medium')
+    setUsePreset(false)
+    setSelectedPreset('button')
     setCurrentBgIndex(0)
     setAutoCycle(true) // Resume auto-cycle
     setCopied(false)
   }
+  
+  // Calculate glass value
+  const glassValue = usePreset 
+    ? selectedPreset 
+    : glassEnabled 
+      ? { blur, opacity, borderGlow } 
+      : false
 
   // Generate code output
   const generateCode = () => {
+    if (usePreset) {
+      const props = [`glass="${selectedPreset}"`]
+      if (color !== 'neutral') props.push(`color="${color}"`)
+      if (radius !== 'lg') props.push(`radius="${radius}"`)
+      if (shadow !== 'sm') props.push(`shadow="${shadow}"`)
+      return `<GlassContainer${props.length > 0 ? '\n  ' + props.join('\n  ') : ''}>\n  Content\n</GlassContainer>`
+    }
+    
     if (!glassEnabled) {
       const props = [`glass={false}`]
       if (color !== 'neutral') props.push(`color="${color}"`)
@@ -177,7 +198,10 @@ export default function Interactive() {
                 <input
                   type="checkbox"
                   checked={glassEnabled}
-                  onChange={(e) => setGlassEnabled(e.target.checked)}
+                  onChange={(e) => {
+                    setGlassEnabled(e.target.checked)
+                    if (!e.target.checked) setUsePreset(false)
+                  }}
                   className="w-4 h-4 accent-blue-500 cursor-pointer transition-transform hover:scale-110"
                   aria-label="Toggle glass effect"
                 />
@@ -185,6 +209,48 @@ export default function Interactive() {
               </label>
             </GlassContainer>
           </div>
+
+          {/* Preset Mode */}
+          {glassEnabled && (
+            <div className="space-y-2">
+              <GlassContainer
+                glass={{ blur: 'xs', opacity: 0.05 }}
+                radius="md"
+                className="p-3"
+              >
+                <label className="flex items-center gap-3 cursor-pointer mb-2">
+                  <input
+                    type="checkbox"
+                    checked={usePreset}
+                    onChange={(e) => setUsePreset(e.target.checked)}
+                    className="w-4 h-4 accent-blue-500 cursor-pointer transition-transform hover:scale-110"
+                    aria-label="Use preset"
+                  />
+                  <span className="text-white text-sm font-medium">Use Preset</span>
+                </label>
+                
+                {usePreset && (
+                  <>
+                    <select
+                      value={selectedPreset}
+                      onChange={(e) => setSelectedPreset(e.target.value as PresetName)}
+                      className="w-full px-3 py-2 bg-gray-800/80 text-white rounded-lg border border-white/10 text-sm focus:outline-none focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all cursor-pointer hover:bg-gray-800 mb-2"
+                      aria-label="Select preset"
+                    >
+                      {listPresets().map((preset) => (
+                        <option key={preset} value={preset}>
+                          {preset}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-xs text-gray-400">
+                      Manual controls disabled when using presets
+                    </p>
+                  </>
+                )}
+              </GlassContainer>
+            </div>
+          )}
 
           {/* Browser Support Warning */}
           {!backdropSupported && glassEnabled && (
@@ -201,7 +267,7 @@ export default function Interactive() {
             </GlassContainer>
           )}
 
-          {glassEnabled && (
+          {!usePreset && glassEnabled && (
             <>
               {/* Blur */}
               <div className="space-y-2">
@@ -501,23 +567,52 @@ export default function Interactive() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {/* Preview Section - Fixed Architecture */}
+        {/* Preview Section - FIXED ARCHITECTURE */}
         <div className="flex-1 relative overflow-hidden">
-          {/* Background Layer - FIXED (never changes position) */}
+          {/* Background Layers - Pure CSS, opacity-based crossfade */}
           <div 
-            className="absolute inset-0 bg-cover bg-center transition-all duration-500"
-            style={{ backgroundImage: `url(${backgrounds[currentBgIndex].path})` }}
+            className={`absolute inset-0 transition-opacity duration-500 bg-cover bg-center bg-no-repeat ${
+              currentBgIndex === 0 ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ 
+              backgroundImage: `url(${backgrounds[0].path})`,
+              backgroundAttachment: 'scroll',
+              backgroundPosition: 'center center',
+              backgroundSize: 'cover'
+            }}
+          />
+          <div 
+            className={`absolute inset-0 transition-opacity duration-500 bg-cover bg-center bg-no-repeat ${
+              currentBgIndex === 1 ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ 
+              backgroundImage: `url(${backgrounds[1].path})`,
+              backgroundAttachment: 'scroll',
+              backgroundPosition: 'center center',
+              backgroundSize: 'cover'
+            }}
+          />
+          <div 
+            className={`absolute inset-0 transition-opacity duration-500 bg-cover bg-center bg-no-repeat ${
+              currentBgIndex === 2 ? 'opacity-100' : 'opacity-0'
+            }`}
+            style={{ 
+              backgroundImage: `url(${backgrounds[2].path})`,
+              backgroundAttachment: 'scroll',
+              backgroundPosition: 'center center',
+              backgroundSize: 'cover'
+            }}
           />
           
-          {/* Content Layer - OVERLAY (glass effects here) */}
-          <div className="relative z-10 flex items-center justify-center p-12 min-h-full">
-            <div className="w-full max-w-2xl">
+          {/* Content Overlay - Completely separate, no background */}
+          <div className="absolute inset-0 flex items-center justify-center p-8 md:p-12 pointer-events-none">
+            <div className="w-full max-w-2xl pointer-events-auto">
               <GlassContainer
-                glass={glassEnabled ? { blur, opacity, borderGlow } : false}
+                glass={glassValue}
                 color={color}
                 radius={radius}
                 shadow={shadow}
-                className="p-8"
+                className="p-6 md:p-8"
               >
                 {getContent()}
               </GlassContainer>

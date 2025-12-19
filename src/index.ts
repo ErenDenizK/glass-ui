@@ -10,6 +10,12 @@ import './glass-system/primitives/GlassContainer/styles.css'
 // Glass System
 export * from './glass-system'
 
-// Components (will be added later)
-// export * from './components'
+// Animation System
+export * from './animation'
+
+// Components
+export * from './components'
+
+// Utilities
+export * from './utils'
 

@@ -1,11 +1,16 @@
 import { blur, validateBlur, getOpacity } from '../../tokens'
+import { getPreset, listPresets } from '../../presets/context-presets'
 import type { GlassConfig } from './types'
 import type { BlurValue, OpacityValue } from '../../tokens'
+import type { PresetName } from '../../presets/types'
 
 /**
  * Parse glass config into style values
+ * Now supports presets!
  */
-export function parseGlassConfig(glass: boolean | GlassConfig | undefined): {
+export function parseGlassConfig(
+  glass: boolean | GlassConfig | PresetName | undefined
+): {
   blur: string
   opacity: number
   borderGlow: boolean
@@ -28,7 +33,29 @@ export function parseGlassConfig(glass: boolean | GlassConfig | undefined): {
     }
   }
   
-  // Custom config
+  // Check if it's a preset name (string)
+  if (typeof glass === 'string') {
+    const presets = listPresets()
+    if (presets.includes(glass as PresetName)) {
+      const preset = getPreset(glass as PresetName)
+      return {
+        blur: parseBlurValue(preset.blur),
+        opacity: parseOpacityValue(preset.opacity),
+        borderGlow: preset.borderGlow,
+      }
+    }
+    // If string but not a valid preset, fall back to default
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(`Invalid preset name: "${glass}". Using default.`)
+    }
+    return {
+      blur: blur.md,
+      opacity: getOpacity('normal'),
+      borderGlow: false,
+    }
+  }
+  
+  // Custom config object
   const config = glass as GlassConfig
   
   return {

@@ -17,6 +17,16 @@ export interface GlassConfig {
 }
 
 /**
+ * Panel preset names
+ */
+export type PanelPreset = 'light' | 'medium' | 'heavy'
+
+/**
+ * Button preset names
+ */
+export type ButtonPreset = 'solid' | 'glass' | 'minimal'
+
+/**
  * GlassContainer component props
  */
 export interface GlassContainerProps {
@@ -73,5 +83,21 @@ export interface GlassContainerProps {
    * Disabled state (for button elements)
    */
   disabled?: boolean
+  
+  /**
+   * Layer depth (1 = outermost, 2 = inner, 3 = innermost)
+   * Auto-adjusts opacity/blur for nested glass
+   */
+  layer?: 1 | 2 | 3
+  
+  /**
+   * Panel preset (for container/background glass)
+   */
+  panelPreset?: PanelPreset
+  
+  /**
+   * Button preset (for interactive glass)
+   */
+  buttonPreset?: ButtonPreset
 }
 

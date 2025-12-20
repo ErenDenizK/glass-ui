@@ -1,91 +1,108 @@
 import { useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { GlassContainer } from 'glass-ui'
 
-// Animation Presets (Smart defaults)
+// 3 Animation Presets (Character-driven)
 const ANIMATION_PRESETS = {
-  fast: {
-    name: 'Fast',
-    description: 'Snappy, responsive',
+  subtle: {
+    name: 'Subtle',
+    character: 'Premium, barely there',
+    icon: '✨',
     hoverScale: 1.01,
     tapScale: 0.98,
-    duration: 150,
-    easing: [0.4, 0.0, 1, 1], // Accelerate
-    yOffset: 0,
+    duration: 200,
+    easing: [0.4, 0.0, 0.2, 1], // Material Standard
   },
-  smooth: {
-    name: 'Smooth',
-    description: 'Polished, elegant',
+  balanced: {
+    name: 'Balanced',
+    character: 'Professional, noticeable',
+    icon: '⚖️',
     hoverScale: 1.015,
     tapScale: 0.97,
-    duration: 200,
-    easing: [0.4, 0.0, 0.2, 1], // Standard
-    yOffset: 0,
-  },
-  tactile: {
-    name: 'Tactile',
-    description: 'Playful, engaging',
-    hoverScale: 1.02,
-    tapScale: 0.96,
     duration: 180,
-    easing: 'spring', // Spring physics
+    easing: [0.4, 0.0, 0.2, 1],
+  },
+  bold: {
+    name: 'Bold',
+    character: 'Playful, engaging',
+    icon: '⚡',
+    hoverScale: 1.025,
+    tapScale: 0.96,
+    duration: 200,
+    spring: true,
     springStiffness: 400,
     springDamping: 25,
-    yOffset: -2,
-  },
-  heavy: {
-    name: 'Heavy',
-    description: 'Bold, impactful',
-    hoverScale: 1.03,
-    tapScale: 0.95,
-    duration: 250,
-    easing: [0.2, 0.0, 0, 1], // Emphasized
-    yOffset: -3,
   },
 } as const
 
 type PresetName = keyof typeof ANIMATION_PRESETS
+type PanelPreset = 'light' | 'medium' | 'heavy'
+type ButtonPreset = 'solid' | 'glass' | 'minimal'
+
+// Collapsible Section Component
+function CollapsibleSection({ 
+  title, 
+  defaultOpen = true, 
+  children 
+}: { 
+  title: string
+  defaultOpen?: boolean
+  children: React.ReactNode 
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen)
+  
+  return (
+    <div className="mb-4">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-white/5 hover:bg-white/10 rounded-lg transition-colors"
+      >
+        <span className="text-white font-semibold text-sm">{title}</span>
+        <motion.span
+          animate={{ rotate: isOpen ? 180 : 0 }}
+          transition={{ duration: 0.2 }}
+          className="text-white"
+        >
+          ▼
+        </motion.span>
+      </button>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="overflow-hidden"
+          >
+            <div className="pt-4">
+              {children}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
 
 export default function AnimationLab() {
-  // Preset selection
-  const [selectedPreset, setSelectedPreset] = useState<PresetName>('smooth')
-  const [advancedMode, setAdvancedMode] = useState(false)
+  // Animation
+  const [selectedPreset, setSelectedPreset] = useState<PresetName>('balanced')
   
-  // Animation parameters (from preset or custom)
+  // Glass Panel (layer system)
+  const [panelLayer, setPanelLayer] = useState<1 | 2>(1)
+  const [panelPreset, setPanelPreset] = useState<PanelPreset>('medium')
+  
+  // Glass Button
+  const [buttonPreset, setButtonPreset] = useState<ButtonPreset>('glass')
+  
+  // Get preset config
   const preset = ANIMATION_PRESETS[selectedPreset]
-  const [hoverScale, setHoverScale] = useState<number>(preset.hoverScale)
-  const [tapScale, setTapScale] = useState<number>(preset.tapScale)
-  const [duration, setDuration] = useState<number>(preset.duration)
-  const [yOffset, setYOffset] = useState<number>(preset.yOffset)
-  
-  // Glass response
-  const [blurShift, setBlurShift] = useState(false)
-  const [opacityShift, setOpacityShift] = useState(0.05)
-  
-  // Context (glass layers)
-  const [outerBlur, setOuterBlur] = useState<'xs' | 'sm' | 'md' | 'lg' | 'max'>('md')
-  const [outerOpacity, setOuterOpacity] = useState(0.2)
-  const [innerBlur, setInnerBlur] = useState<'xs' | 'sm' | 'md' | 'lg' | 'max'>('lg')
-  const [innerOpacity, setInnerOpacity] = useState(0.4)
-  
-  // Button state
-  const [isHovered, setIsHovered] = useState(false)
-  
-  // Update values when preset changes
-  const handlePresetChange = (presetName: PresetName) => {
-    setSelectedPreset(presetName)
-    const newPreset = ANIMATION_PRESETS[presetName]
-    setHoverScale(newPreset.hoverScale)
-    setTapScale(newPreset.tapScale)
-    setDuration(newPreset.duration)
-    setYOffset(newPreset.yOffset)
-  }
   
   // Build transition
   const getTransition = (type: 'hover' | 'tap') => {
-    const currentDuration = type === 'hover' ? duration : duration * 0.5
-    
-    if (preset.easing === 'spring' && selectedPreset === 'tactile') {
+    if ('spring' in preset && preset.spring && selectedPreset === 'bold') {
       return {
         type: 'spring' as const,
         stiffness: preset.springStiffness,
@@ -94,8 +111,8 @@ export default function AnimationLab() {
     }
     
     return {
-      duration: currentDuration / 1000,
-      ease: Array.isArray(preset.easing) ? [...preset.easing] as [number, number, number, number] : undefined,
+      duration: (type === 'hover' ? preset.duration : preset.duration * 0.5) / 1000,
+      ease: 'easing' in preset ? preset.easing : [0.4, 0.0, 0.2, 1],
     }
   }
   
@@ -117,256 +134,169 @@ export default function AnimationLab() {
         
         {/* Left Panel - Animation Controls */}
         <div className="fixed left-8 top-1/2 -translate-y-1/2 w-80">
-          <GlassContainer glass={{ blur: 'md', opacity: 0.2 }} className="p-6">
-            <h2 className="text-white text-xl font-bold mb-6">Animation</h2>
+          <GlassContainer panelPreset="medium" radius="xl" className="p-6">
+            <h2 className="text-white text-xl font-bold mb-6">Controls</h2>
             
-            {/* Preset Selector */}
-            <div className="mb-6">
-              <label className="text-white text-sm font-medium mb-3 block">
-                Presets
-              </label>
-              <div className="grid grid-cols-2 gap-2">
+            {/* Animation Section */}
+            <CollapsibleSection title="Animation" defaultOpen={true}>
+              <div className="grid grid-cols-1 gap-3">
                 {(Object.keys(ANIMATION_PRESETS) as PresetName[]).map((presetName) => {
                   const p = ANIMATION_PRESETS[presetName]
                   return (
                     <button
                       key={presetName}
-                      onClick={() => handlePresetChange(presetName)}
+                      onClick={() => setSelectedPreset(presetName)}
                       className={`px-4 py-3 rounded-lg text-left transition-all ${
                         selectedPreset === presetName
-                          ? 'bg-white text-gray-900'
+                          ? 'bg-white text-gray-900 scale-105'
                           : 'bg-white/10 text-white hover:bg-white/20'
                       }`}
                     >
-                      <div className="font-semibold text-sm">{p.name}</div>
-                      <div className="text-xs opacity-70 mt-0.5">{p.description}</div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span>{p.icon}</span>
+                        <span className="font-semibold text-sm">{p.name}</span>
+                      </div>
+                      <div className="text-xs opacity-70">{p.character}</div>
                     </button>
                   )
                 })}
               </div>
-            </div>
+            </CollapsibleSection>
             
-            {/* Advanced Mode Toggle */}
-            <div className="mb-6 border-t border-white/10 pt-6">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={advancedMode}
-                  onChange={(e) => setAdvancedMode(e.target.checked)}
-                  className="w-4 h-4"
-                />
-                <span className="text-white text-sm font-medium">Advanced Controls</span>
+            {/* Glass Panel Section */}
+            <CollapsibleSection title="Glass Panel" defaultOpen={false}>
+              {/* Layer System */}
+              <div className="mb-6">
+                <label className="text-white text-sm font-medium mb-3 block">
+                  Layer Depth (Auto Darkness)
+                </label>
+                <div className="flex gap-2">
+                  {[1, 2].map((layer) => (
+                    <button
+                      key={layer}
+                      onClick={() => setPanelLayer(layer as 1 | 2)}
+                      className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        panelLayer === layer
+                          ? 'bg-white text-gray-900'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      Layer {layer}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-white/60 text-xs mt-2">
+                  Layer 2 is automatically darker
+                </p>
+              </div>
+              
+              {/* Panel Presets */}
+              <div>
+                <label className="text-white text-sm font-medium mb-3 block">
+                  Panel Presets
+                </label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(['light', 'medium', 'heavy'] as PanelPreset[]).map((preset) => (
+                    <button
+                      key={preset}
+                      onClick={() => setPanelPreset(preset)}
+                      className={`px-3 py-2 rounded-lg text-xs font-medium transition-all capitalize ${
+                        panelPreset === preset
+                          ? 'bg-white text-gray-900'
+                          : 'bg-white/10 text-white hover:bg-white/20'
+                      }`}
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </CollapsibleSection>
+            
+            {/* Glass Button Section */}
+            <CollapsibleSection title="Glass Button" defaultOpen={false}>
+              <label className="text-white text-sm font-medium mb-3 block">
+                Button Glass Style
               </label>
-            </div>
-            
-            {/* Advanced Controls (Expandable) */}
-            {advancedMode && (
-              <div className="space-y-6 border-t border-white/10 pt-6">
-                <div>
-                  <label className="text-white text-sm font-medium mb-2 block">
-                    Hover Scale: {hoverScale.toFixed(3)}
-                  </label>
-                  <input
-                    type="range"
-                    min="1.0"
-                    max="1.05"
-                    step="0.001"
-                    value={hoverScale}
-                    onChange={(e) => setHoverScale(parseFloat(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-white text-sm font-medium mb-2 block">
-                    Tap Scale: {tapScale.toFixed(3)}
-                  </label>
-                  <input
-                    type="range"
-                    min="0.9"
-                    max="1.0"
-                    step="0.001"
-                    value={tapScale}
-                    onChange={(e) => setTapScale(parseFloat(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-white text-sm font-medium mb-2 block">
-                    Duration: {duration}ms
-                  </label>
-                  <input
-                    type="range"
-                    min="50"
-                    max="400"
-                    step="10"
-                    value={duration}
-                    onChange={(e) => setDuration(parseInt(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-white text-sm font-medium mb-2 block">
-                    Y Offset: {yOffset}px
-                  </label>
-                  <input
-                    type="range"
-                    min="-5"
-                    max="5"
-                    step="1"
-                    value={yOffset}
-                    onChange={(e) => setYOffset(parseInt(e.target.value))}
-                    className="w-full"
-                  />
-                </div>
+              <div className="grid grid-cols-3 gap-2">
+                {(['solid', 'glass', 'minimal'] as ButtonPreset[]).map((preset) => (
+                  <button
+                    key={preset}
+                    onClick={() => setButtonPreset(preset)}
+                    className={`px-3 py-2 rounded-lg text-xs font-medium transition-all capitalize ${
+                      buttonPreset === preset
+                        ? 'bg-white text-gray-900'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    {preset}
+                  </button>
+                ))}
               </div>
-            )}
-            
-            {/* Glass Response */}
-            <div className="border-t border-white/10 pt-6 mt-6">
-              <h3 className="text-white text-sm font-bold mb-4">Glass Response</h3>
-              
-              <div className="mb-4">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={blurShift}
-                    onChange={(e) => setBlurShift(e.target.checked)}
-                    className="w-4 h-4"
-                  />
-                  <span className="text-white text-sm">Blur shift on hover</span>
-                </label>
-              </div>
-              
-              <div>
-                <label className="text-white text-sm font-medium mb-2 block">
-                  Opacity Shift: +{opacityShift.toFixed(2)}
-                </label>
-                <input
-                  type="range"
-                  min="0"
-                  max="0.15"
-                  step="0.01"
-                  value={opacityShift}
-                  onChange={(e) => setOpacityShift(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-            </div>
+              <p className="text-white/60 text-xs mt-2">
+                Solid = opaque, Glass = translucent, Minimal = subtle
+              </p>
+            </CollapsibleSection>
           </GlassContainer>
         </div>
         
-        {/* Right Panel - Context Controls */}
+        {/* Right Panel - Info */}
         <div className="fixed right-8 top-1/2 -translate-y-1/2 w-80">
-          <GlassContainer glass={{ blur: 'md', opacity: 0.2 }} className="p-6">
-            <h2 className="text-white text-xl font-bold mb-6">Glass Context</h2>
+          <GlassContainer panelPreset="medium" radius="xl" className="p-6">
+            <h2 className="text-white text-xl font-bold mb-4">Current Setup</h2>
             
-            {/* Outer Glass */}
-            <div className="mb-8">
-              <h3 className="text-white text-sm font-bold mb-4">Outer Glass</h3>
+            <div className="space-y-4 text-sm">
+              <div>
+                <div className="text-white/60 text-xs mb-1">Animation</div>
+                <div className="text-white font-medium">
+                  {preset.icon} {preset.name}
+                </div>
+                <div className="text-white/70 text-xs">{preset.character}</div>
+              </div>
               
-              <div className="mb-4">
-                <label className="text-white text-sm font-medium mb-2 block">Blur</label>
-                <div className="flex gap-2">
-                  {(['xs', 'sm', 'md', 'lg', 'max'] as const).map((blur) => (
-                    <button
-                      key={blur}
-                      onClick={() => setOuterBlur(blur)}
-                      className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-all ${
-                        outerBlur === blur
-                          ? 'bg-white text-gray-900'
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                    >
-                      {blur}
-                    </button>
-                  ))}
+              <div className="border-t border-white/10 pt-4">
+                <div className="text-white/60 text-xs mb-1">Panel Glass</div>
+                <div className="text-white font-medium">
+                  Layer {panelLayer} + {panelPreset}
                 </div>
               </div>
               
-              <div>
-                <label className="text-white text-sm font-medium mb-2 block">
-                  Opacity: {outerOpacity.toFixed(2)}
-                </label>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="0.5"
-                  step="0.01"
-                  value={outerOpacity}
-                  onChange={(e) => setOuterOpacity(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-              </div>
-            </div>
-            
-            {/* Inner Glass */}
-            <div>
-              <h3 className="text-white text-sm font-bold mb-4">Inner Glass</h3>
-              
-              <div className="mb-4">
-                <label className="text-white text-sm font-medium mb-2 block">Blur</label>
-                <div className="flex gap-2">
-                  {(['xs', 'sm', 'md', 'lg', 'max'] as const).map((blur) => (
-                    <button
-                      key={blur}
-                      onClick={() => setInnerBlur(blur)}
-                      className={`flex-1 px-2 py-1.5 rounded text-xs font-medium transition-all ${
-                        innerBlur === blur
-                          ? 'bg-white text-gray-900'
-                          : 'bg-white/10 text-white hover:bg-white/20'
-                      }`}
-                    >
-                      {blur}
-                    </button>
-                  ))}
+              <div className="border-t border-white/10 pt-4">
+                <div className="text-white/60 text-xs mb-1">Button Glass</div>
+                <div className="text-white font-medium capitalize">
+                  {buttonPreset}
                 </div>
-              </div>
-              
-              <div>
-                <label className="text-white text-sm font-medium mb-2 block">
-                  Opacity: {innerOpacity.toFixed(2)}
-                </label>
-                <input
-                  type="range"
-                  min="0.1"
-                  max="0.8"
-                  step="0.01"
-                  value={innerOpacity}
-                  onChange={(e) => setInnerOpacity(parseFloat(e.target.value))}
-                  className="w-full"
-                />
               </div>
             </div>
           </GlassContainer>
+          
+          {/* Instructions */}
+          <GlassContainer panelPreset="light" radius="lg" className="p-4 mt-4">
+            <p className="text-white/90 text-xs leading-relaxed">
+              <strong className="text-white">Select presets</strong> to test combinations.
+              <br />
+              <strong className="text-white">Hover & click</strong> the button to feel animation.
+              <br />
+              <strong className="text-white">Expand sections</strong> for more options.
+            </p>
+          </GlassContainer>
         </div>
         
-        {/* Center - Login-Style Layout */}
+        {/* Center - Login Layout */}
         <div className="flex flex-col items-center gap-8">
-          {/* Outer Glass Container */}
+          {/* Outer Panel (uses layer system) */}
           <GlassContainer 
-            glass={{ blur: outerBlur, opacity: outerOpacity }}
+            layer={panelLayer}
             color="neutral"
             radius="2xl"
             className="p-12 w-full max-w-md"
           >
-            {/* Inner Glass (Content Card) */}
+            {/* Inner Panel (uses panel preset) */}
             <GlassContainer
-              glass={{ 
-                blur: blurShift && isHovered 
-                  ? (innerBlur === 'xs' ? 'sm' 
-                    : innerBlur === 'sm' ? 'md'
-                    : innerBlur === 'md' ? 'lg'
-                    : innerBlur === 'lg' ? 'max'
-                    : 'max')
-                  : innerBlur,
-                opacity: innerOpacity + (isHovered ? opacityShift : 0)
-              }}
+              panelPreset={panelPreset}
               color="neutral"
               radius="xl"
-              className="p-8 transition-all duration-200"
+              className="p-8"
             >
               {/* Content */}
               <div className="text-center mb-8">
@@ -379,43 +309,40 @@ export default function AnimationLab() {
                 </p>
               </div>
               
-              {/* White Button */}
-              <motion.button
-                onHoverStart={() => setIsHovered(true)}
-                onHoverEnd={() => setIsHovered(false)}
+              {/* Button (isolated animation, uses button preset) */}
+              <motion.div
                 whileHover={{
-                  scale: hoverScale,
-                  y: yOffset,
+                  scale: preset.hoverScale,
                   transition: getTransition('hover'),
                 }}
                 whileTap={{
-                  scale: tapScale,
-                  y: 0,
+                  scale: preset.tapScale,
                   transition: getTransition('tap'),
                 }}
-                className="w-full px-8 py-4 bg-white text-gray-900 rounded-lg font-semibold text-lg shadow-xl hover:shadow-2xl transition-shadow duration-200"
+                className="w-full"
               >
-                Continue
-              </motion.button>
+                <GlassContainer
+                  as="button"
+                  buttonPreset={buttonPreset}
+                  radius="lg"
+                  className="w-full px-8 py-4 text-gray-900 font-semibold text-lg shadow-xl hover:shadow-2xl transition-shadow duration-200"
+                  style={{
+                    backgroundColor: buttonPreset === 'solid' ? 'rgba(255, 255, 255, 0.95)' 
+                      : buttonPreset === 'glass' ? 'rgba(255, 255, 255, 0.5)'
+                      : 'rgba(255, 255, 255, 0.2)'
+                  }}
+                >
+                  Continue
+                </GlassContainer>
+              </motion.div>
             </GlassContainer>
-          </GlassContainer>
-          
-          {/* Instructions */}
-          <GlassContainer glass={{ blur: 'sm', opacity: 0.15 }} radius="lg" className="p-4 max-w-md">
-            <p className="text-white/90 text-sm text-center leading-relaxed">
-              <strong className="text-white">Select a preset</strong> to test animation feel.
-              <br />
-              <strong className="text-white">Enable Advanced</strong> for fine-tuning.
-              <br />
-              <strong className="text-white">Hover & click</strong> the button to test.
-            </p>
           </GlassContainer>
         </div>
       </div>
       
       {/* Title */}
       <div className="absolute top-8 left-1/2 -translate-x-1/2">
-        <GlassContainer glass={{ blur: 'sm', opacity: 0.15 }} radius="full" className="px-8 py-3">
+        <GlassContainer panelPreset="light" radius="full" className="px-8 py-3">
           <h1 className="text-white text-2xl font-bold">Animation Lab</h1>
         </GlassContainer>
       </div>

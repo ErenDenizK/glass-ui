@@ -30,6 +30,9 @@ export const GlassContainer = forwardRef<HTMLDivElement | HTMLButtonElement, Gla
   (
     {
       glass = true,
+      layer,
+      panelPreset,
+      buttonPreset,
       color = 'neutral',
       radius: radiusValue = 'lg',
       shadow = 'sm',
@@ -41,7 +44,12 @@ export const GlassContainer = forwardRef<HTMLDivElement | HTMLButtonElement, Gla
     },
     ref
   ) => {
-    const { blur: blurValue, opacity: opacityValue, borderGlow } = parseGlassConfig(glass)
+    const { blur: blurValue, opacity: opacityValue, borderGlow } = parseGlassConfig(
+      glass,
+      layer,
+      panelPreset,
+      buttonPreset
+    )
     const colorToken = getColor(color)
     const hasBackdropFilter = supportsBackdropFilter()
     

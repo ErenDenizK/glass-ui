@@ -1,20 +1,82 @@
 import { blur, validateBlur, getOpacity } from '../../tokens'
 import { getPreset, listPresets } from '../../presets/context-presets'
-import type { GlassConfig } from './types'
+import type { GlassConfig, PanelPreset, ButtonPreset } from './types'
 import type { BlurValue, OpacityValue } from '../../tokens'
 import type { PresetName } from '../../presets/types'
 
 /**
- * Parse glass config into style values
- * Now supports presets!
+ * Panel presets for container/background glass
+ */
+const panelPresets: Record<PanelPreset, { blur: BlurValue; opacity: number }> = {
+  light: { blur: 'sm', opacity: 0.15 },
+  medium: { blur: 'md', opacity: 0.25 },
+  heavy: { blur: 'lg', opacity: 0.4 },
+}
+
+/**
+ * Button presets for interactive glass
+ */
+const buttonPresets: Record<ButtonPreset, { blur: BlurValue; opacity: number }> = {
+  solid: { blur: 'sm', opacity: 0.7 },   // Looks solid
+  glass: { blur: 'md', opacity: 0.3 },   // Classic glass
+  minimal: { blur: 'xs', opacity: 0.1 }, // Barely visible
+}
+
+/**
+ * Calculate glass config based on layer depth
+ */
+function getLayerConfig(layer: 1 | 2 | 3): { blur: string; opacity: number } {
+  const configs = {
+    1: { blur: blur.md, opacity: 0.2 },      // Outermost
+    2: { blur: blur.lg, opacity: 0.35 },     // Inner (auto darker)
+    3: { blur: blur.lg, opacity: 0.5 },     // Innermost (darkest)
+  }
+  return configs[layer]
+}
+
+/**
+ * Parse glass config with layer, panel, and button preset support
  */
 export function parseGlassConfig(
-  glass: boolean | GlassConfig | PresetName | undefined
+  glass: boolean | GlassConfig | PresetName | undefined,
+  layer?: 1 | 2 | 3,
+  panelPreset?: PanelPreset,
+  buttonPreset?: ButtonPreset
 ): {
   blur: string
   opacity: number
   borderGlow: boolean
 } {
+  // Layer preset takes precedence
+  if (layer) {
+    const config = getLayerConfig(layer)
+    return {
+      blur: config.blur,
+      opacity: config.opacity,
+      borderGlow: false,
+    }
+  }
+  
+  // Panel preset
+  if (panelPreset) {
+    const config = panelPresets[panelPreset]
+    return {
+      blur: blur[config.blur],
+      opacity: config.opacity,
+      borderGlow: false,
+    }
+  }
+  
+  // Button preset
+  if (buttonPreset) {
+    const config = buttonPresets[buttonPreset]
+    return {
+      blur: blur[config.blur],
+      opacity: config.opacity,
+      borderGlow: false,
+    }
+  }
+  
   // Glass disabled
   if (glass === false) {
     return {

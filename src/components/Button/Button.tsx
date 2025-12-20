@@ -4,7 +4,6 @@ import { AnimatedContainer } from '../../animation'
 import { cn } from '../../utils'
 import { variantStyles, sizeStyles, iconOnlySizes, variantGlassDefaults } from './styles'
 import type { ButtonProps } from './types'
-import type { ShadowValue } from '../../glass-system/tokens'
 
 /**
  * Button Component
@@ -59,40 +58,23 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Hover state for shadow enhancement
     const [isHovered, setIsHovered] = useState(false)
     
-    // Enhance shadow on hover (subtle depth increase)
-    const getShadowValue = (): ShadowValue => {
-      if (!isHovered || isDisabled || shadow === 'none') {
-        return shadow
-      }
-      // Increase shadow depth by one level
-      const shadowMap: Record<ShadowValue, ShadowValue> = {
-        none: 'none',
-        xs: 'sm',
-        sm: 'md',
-        md: 'lg',
-        lg: 'xl',
-        xl: 'xl', // Max out at xl
-      }
-      return shadowMap[shadow] || shadow
-    }
-    
     return (
       <AnimatedContainer
-        // Hover: Subtle scale-up (Apple-style)
+        // Hover: Subtle scale-up
         whileHover={!isDisabled ? {
           scale: 1.015,
           transition: {
             duration: 0.2,
-            ease: [0.4, 0.0, 0.2, 1], // Material Standard easing
+            ease: [0.4, 0.0, 0.2, 1], // Material Standard
           }
         } : undefined}
         
-        // Tap: Quick scale-down (crisp feedback)
+        // Tap: Quick scale-down (impact feel)
         whileTap={!isDisabled ? {
           scale: 0.97,
           transition: {
             duration: 0.1,
-            ease: [0.4, 0.0, 1, 1], // Material Accelerate easing
+            ease: [0.4, 0.0, 1, 1], // Material Accelerate
           }
         } : undefined}
         
@@ -109,18 +91,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           glass={glassConfig}
           color={color}
           radius={radius}
-          shadow={getShadowValue()}
-          {...(props as Omit<React.HTMLAttributes<HTMLButtonElement>, 'color'>)}
+          // Shadow depth increases on hover (elevation)
+          shadow={isHovered && !isDisabled && shadow !== 'none' 
+            ? shadow === 'xs' ? 'sm'
+              : shadow === 'sm' ? 'md'
+              : shadow === 'md' ? 'lg'
+              : shadow === 'lg' ? 'xl'
+              : shadow
+            : shadow
+          }
           disabled={isDisabled}
           className={cn(
             // Base styles
             'relative inline-flex items-center justify-center',
             'transition-shadow duration-200', // Smooth shadow transition
             
-            // Focus styles (smooth, glass-themed)
+            // Focus styles
             'focus:outline-none',
             'focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
-            'transition-shadow duration-200', // Smooth focus ring transition
             
             // Variant styles
             variantStyles[variant],
@@ -135,7 +123,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             // Custom classes
             className
           )}
-          {...props}
+          {...(props as Omit<React.HTMLAttributes<HTMLButtonElement>, 'color'>)}
         >
           {/* Loading spinner */}
           {loading && (

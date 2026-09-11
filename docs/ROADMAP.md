@@ -45,28 +45,42 @@ consequence, not its point.
 
 ---
 
-## Phase 2 — A visual language of our own
+## Phase 2 — Make composition safe
 
-*The differentiator. Everything here targets the "muddy grey" finding.*
+*Direction set by the product lead: the current look stays. No visual overhaul.
+The risk worth engineering against is that stacking many glass surfaces turns
+ugly — so that is what this phase fixes, one measurable step at a time.*
 
-**2.1 Surface model.** Replace the single dark tint with a layered surface:
-base tint, specular rim keyed to a light direction, and depth-dependent blur.
-One `--glass-light-angle` token drives every rim in the interface, so highlights
-agree with each other the way they would under one light source.
+**2.1 Nested glass no longer compounds into mud.** ✅ *Done.*
+Stacked glass composites twice over: three surfaces at 0.25 read as 0.58, not
+0.25. The `layer` prop was meant to manage this and did the opposite — raising
+opacity 0.20 → 0.35 → 0.50 with depth. Measured on a three-deep stack, the
+innermost surface sat at an effective **0.74** — opaque, not glass.
 
-**2.2 Light and dark.** The system currently assumes a dark backdrop. Introduce
-surface tokens that resolve against the backdrop's luminance, so the same
-`<Card>` reads correctly on both — the single largest gap for real adoption.
+Depth is now detected automatically through context, and each level contributes
+a fraction of full strength. Measured on the same stack: **0.74 → 0.385**, and
+nested cards **0.386 → 0.241**. A single surface is untouched, so nothing that
+is not nested changes appearance.
 
-**2.3 Edge refraction.** Real glass displaces what is behind its edges. A thin
-displacement at the rim, gated behind a capability check and off by default,
-is the highest-impact "this is not a mockup" signal available to us.
+**2.2 Depth needs a visible ceiling.** Attenuation stops the mud but does not
+stop someone nesting six panels. A dev-mode warning past three levels — paired
+with the "max 4 concurrent surfaces" rule from `decisions.md` §4, which is also
+unenforced — turns two documented rules into real ones.
 
-**2.4 Elevation as physics.** Today `shadow` and `blur` are set independently,
-which lets a caller build a surface that could not exist. Derive both from a
-single `elevation` token so depth is coherent by construction.
+**2.3 Contrast has to survive stacking.** Text legibility depends on the
+*composited* backdrop, not on any single surface. Now that the composite is
+computable, a dev-mode contrast check (ADR §9, still unimplemented) can be real
+rather than aspirational.
 
-**Open question for the product lead** — see the bottom of this file.
+**2.4 Elevation as one token.** `shadow` and `blur` are set independently today,
+so a caller can build a surface that could not physically exist. Deriving both
+from a single `elevation` token makes depth coherent by construction — and it
+composes with 2.1 rather than fighting it.
+
+**Deferred, deliberately.** Light mode, edge refraction and the surface/specular
+model were proposed as Phase 2 and are **on hold at the product lead's
+direction**. They are visual-language changes, and the current language is the
+one we want. Revisit once composition is provably safe.
 
 ---
 
@@ -127,13 +141,9 @@ three done partially** — and we have not yet finished the first.
 These change what gets built, so they are worth answering before Phase 2
 starts rather than during it.
 
-1. **Light mode — Phase 2 or later?** It is the biggest adoption blocker and
-   also the biggest single piece of work in Phase 2. *Recommendation: yes,
-   in Phase 2. A dark-only design system has a much smaller audience.*
-2. **How far do we push refraction?** A real displacement effect is what would
-   make the project unmistakably not-a-mockup, but it carries GPU cost and
-   browser-support caveats. Opt-in and off by default, or a core part of the
-   look? *Recommendation: build it, ship it opt-in, decide after measuring.*
+1. ~~**Light mode — Phase 2 or later?**~~ **Answered: later.** The current look
+   stays; composition safety comes first.
+2. ~~**How far do we push refraction?**~~ **Answered: not now.** Same reason.
 3. **Who is the primary user?** "Developer adding glass to an existing app"
    and "developer building an entire UI in this language" want different APIs.
    The docs currently address both. *Recommendation: the second — it is what

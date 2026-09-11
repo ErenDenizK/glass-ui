@@ -90,8 +90,15 @@ export interface GlassContainerProps extends Omit<HTMLAttributes<HTMLElement>, '
   disabled?: boolean
   
   /**
-   * Layer depth (1 = outermost, 2 = inner, 3 = innermost)
-   * Auto-adjusts opacity/blur for nested glass
+   * Override the nesting depth of this surface.
+   *
+   * Depth is normally detected automatically: a GlassContainer inside another
+   * GlassContainer renders at depth 2, and contributes less tint and blur
+   * because stacked glass compounds. Set this only when the component tree does
+   * not match the visual nesting - a portalled overlay that is a sibling in the
+   * DOM but reads as an inner panel, for instance.
+   *
+   * 1 = outermost (full strength) · 3 = innermost (most attenuated)
    */
   layer?: 1 | 2 | 3
   

@@ -69,6 +69,35 @@ could never override anything — which silently broke the escape-hatch promise 
 `motion.div`. **#4 is a WCAG 2.4.7 failure** — directly against
 `docs/decisions.md` §9, which makes accessibility non-negotiable.
 
+### Nested glass compounded into mud
+
+Found by stacking three glass surfaces and measuring the composited result.
+
+Glass composites twice over: three surfaces at 0.25 opacity do not read as
+0.25, they read as `1 - 0.75³ = 0.58`. Each `backdrop-filter` also re-blurs a
+backdrop its parent already blurred.
+
+The `layer` prop existed to manage exactly this, and went the wrong way — it
+**raised** opacity `0.20 → 0.35 → 0.50` and blur `10px → 16px → 16px` with
+depth, amplifying what nesting was already amplifying.
+
+| Three-deep stack, composited tint | Before | After |
+|---|---|---|
+| `layer={1,2,3}` | **0.74** (opaque) | **0.385** |
+| `card` preset nested three times | 0.386 | **0.241** |
+
+`layer` also replaced the caller's whole config, so `layer={2} glass="modal"`
+silently discarded the modal preset and its border glow.
+
+Depth is now detected through React context and each level contributes a
+fraction of full strength; `layer` overrides the detected depth instead of
+hijacking the config. A surface that is not nested is unchanged — **depth 1 is
+×1**, so existing single-surface appearance is preserved exactly.
+
+One deliberate behaviour change: an explicit `layer={1}` used to force opacity
+`0.20` from the old lookup table. It now means "depth 1" and the surface keeps
+whatever `glass` resolves to (default `0.25`).
+
 ### Packaging
 
 | Defect | Impact |
@@ -136,16 +165,24 @@ everywhere; on a light background the dark tint inverts the intended effect.
 ```
 lint       0 warnings
 typecheck  clean
-tests      56 passed (was 46; +10 regression tests for the defects above)
+tests      68 passed (was 46; +22 regression tests for the defects above)
 build      dist/index.mjs 17 kB · index.js 10 kB · index.d.ts 18 kB · style.css 1.3 kB
 site       builds and serves correctly from a /<repo>/ sub-path
 ```
 
-**CI passes on GitHub.** The Pages deploy job builds successfully but cannot
-publish until Pages is enabled once by hand — **Settings → Pages → Source →
-_GitHub Actions_**. A workflow cannot do this itself: creating a Pages site
-needs a token with `repo` scope, and `GITHUB_TOKEN` is refused with
-"Resource not accessible by integration".
+**CI passes on GitHub.** The Pages deploy job builds successfully but has never
+published, because Pages is set to **Deploy from a branch** rather than GitHub
+Actions. That branch is `main`, which is seven commits behind `dev` and contains
+no source at all — so Jekyll renders its old `README.md`, and that README is
+what the published URL serves.
+
+Fix: **Settings → Pages → Source → _GitHub Actions_**. A workflow cannot do this
+itself — creating a Pages site needs a token with `repo` scope, and
+`GITHUB_TOKEN` is refused with "Resource not accessible by integration".
+
+Note that `workflow_dispatch` will not offer a "Run workflow" button until the
+workflow file exists on the default branch; until then, a push to `dev` is what
+triggers a deploy.
 
 The added tests assert the **contract** — which classes apply, which custom
 properties carry which values, that the button is its own root element — rather

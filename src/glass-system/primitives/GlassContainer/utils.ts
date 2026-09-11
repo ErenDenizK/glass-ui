@@ -23,23 +23,15 @@ const buttonPresets: Record<ButtonPreset, { blur: BlurValue; opacity: number }> 
 }
 
 /**
- * Calculate glass config based on layer depth
- */
-function getLayerConfig(layer: 1 | 2 | 3): { blur: string; opacity: number } {
-  const configs = {
-    1: { blur: blur.md, opacity: 0.2 },      // Outermost
-    2: { blur: blur.lg, opacity: 0.35 },     // Inner (auto darker)
-    3: { blur: blur.lg, opacity: 0.5 },     // Innermost (darkest)
-  }
-  return configs[layer]
-}
-
-/**
- * Parse glass config with layer, panel, and button preset support
+ * Parse glass config with panel and button preset support.
+ *
+ * Nesting depth is applied separately, by GlassContainer - see depth.ts. It
+ * used to be handled here, where it replaced the caller's entire config; now it
+ * scales whatever this function resolves, so `layer={2} glass="modal"` keeps
+ * being a modal.
  */
 export function parseGlassConfig(
   glass: boolean | GlassConfig | PresetName | undefined,
-  layer?: 1 | 2 | 3,
   panelPreset?: PanelPreset,
   buttonPreset?: ButtonPreset
 ): {
@@ -47,16 +39,6 @@ export function parseGlassConfig(
   opacity: number
   borderGlow: boolean
 } {
-  // Layer preset takes precedence
-  if (layer) {
-    const config = getLayerConfig(layer)
-    return {
-      blur: config.blur,
-      opacity: config.opacity,
-      borderGlow: false,
-    }
-  }
-  
   // Panel preset
   if (panelPreset) {
     const config = panelPresets[panelPreset]

@@ -18,7 +18,8 @@ The playground is published from `main` and `dev` on every push:
 
 **https://erendenizk.github.io/glass-ui/**
 
-*(One-time setup: repository **Settings → Pages → Source → GitHub Actions**.)*
+Published from `dev` on every push. The deploy workflow enables Pages itself, so
+no repository setting needs changing by hand.
 
 Run it locally:
 

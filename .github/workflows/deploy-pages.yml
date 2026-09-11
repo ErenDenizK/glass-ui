@@ -2,7 +2,12 @@ name: Deploy Pages
 
 on:
   push:
-    branches: [main, dev]
+    # `dev` is the working branch, so it is what the preview site reflects.
+    # Deliberately not [main, dev]: both branches publish to the same URL, so
+    # whichever finishes last wins, and a push to a stale main would quietly
+    # replace the preview. Switch this to main when main becomes the release
+    # branch.
+    branches: [dev]
   workflow_dispatch:
 
 # Allow GITHUB_TOKEN to deploy to GitHub Pages
@@ -25,7 +30,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
@@ -38,6 +43,12 @@ jobs:
           BASE_PATH: /${{ github.event.repository.name }}/
 
       - uses: actions/configure-pages@v5
+        with:
+          # Turn Pages on via the API on the first run, so the repository needs
+          # no manual Settings change. Without this the first deploy fails with
+          # "Get Pages site failed ... verify that the repository has Pages
+          # enabled".
+          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:

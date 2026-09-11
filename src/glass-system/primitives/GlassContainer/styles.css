@@ -1,14 +1,124 @@
 /**
- * Border glow effect - DEPRECATED
- * 
- * Now using box-shadow + border-image approach directly in component styles.
- * This file is kept for reference but the CSS mask technique is no longer used.
- * 
- * The new approach:
- * - box-shadow for outer glow (immediately visible)
- * - border-image for gradient border (CSS native)
- * - inset box-shadow for inner highlight
- * 
- * See GlassContainer.tsx for implementation.
+ * Glass surface stylesheet.
+ *
+ * WHY A STYLESHEET INSTEAD OF INLINE STYLES
+ * -----------------------------------------
+ * Every visual property used to be written into the element's `style`
+ * attribute. Inline styles beat *any* class rule, so a consumer writing
+ * `className="rounded-full"` or a focus-ring utility was silently ignored -
+ * which broke the "escape hatch" promise in docs/philosophy.md #7 and hid the
+ * keyboard focus indicator entirely.
+ *
+ * Now: static rules live here, and only *values* travel inline as CSS custom
+ * properties. Custom properties never participate in the cascade against
+ * utility classes, so `--glass-blur` can be dynamic while `border-radius`
+ * stays overridable.
+ *
+ * WHY @layer
+ * ----------
+ * Unlayered CSS always beats layered CSS, whatever the specificity or source
+ * order. Tailwind utilities are unlayered, so putting our rules in a layer is
+ * what makes `className="rounded-full"` win no matter where this file is
+ * imported.
+ *
+ * THE FLIP SIDE, AND HOW IT IS HANDLED
+ * ------------------------------------
+ * Tailwind's preflight reset is unlayered too, so it also outranks us:
+ *
+ *   button { background-color: transparent }  -> would erase the glass tint
+ *   *, ::before, ::after { border-width: 0 }  -> would erase the rim light
+ *
+ * So the host element deliberately paints neither. The tint lives on ::before
+ * and the rim is an inset box-shadow ring on ::after - two properties preflight
+ * never touches. The host is left with only geometry and the backdrop filter.
  */
 
+@layer glass-ui {
+  .glass-surface {
+    position: relative;
+    border-radius: var(--glass-radius, 0.75rem);
+    box-shadow: var(--glass-shadow, none);
+
+    /* Promote to its own compositing layer so backdrop-filter runs on the GPU. */
+    transform: translateZ(0);
+
+    /* Contain the z-index:-1 tint below, so it cannot slip behind an ancestor. */
+    isolation: isolate;
+  }
+
+  /*
+   * The tinted pane.
+   *
+   * A pseudo-element rather than the host's own background-color, so Tailwind's
+   * `button { background-color: transparent }` reset cannot blank it out.
+   * z-index:-1 keeps it above the host's backdrop but below the content.
+   */
+  .glass-surface::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--glass-bg, transparent);
+    pointer-events: none;
+  }
+
+  /*
+   * Blur is a class, not a bare inline property, so the @supports guard can do
+   * the capability check in CSS. That keeps the first server render and the
+   * first client render identical - a JS feature test cannot.
+   */
+  @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-surface--blur {
+      -webkit-backdrop-filter: blur(var(--glass-blur, 10px));
+      backdrop-filter: blur(var(--glass-blur, 10px));
+    }
+  }
+
+  /*
+   * No backdrop-filter: the surface would read as a flat wash, so fall back to
+   * a higher tint opacity that still separates it from the backdrop.
+   */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-surface--blur::before {
+      background-color: var(--glass-bg-fallback, var(--glass-bg, transparent));
+    }
+  }
+
+  /*
+   * Rim light + glow.
+   *
+   * Everything here is box-shadow: the rim is an inset 1px ring rather than a
+   * real border, which survives preflight's border reset and costs no layout.
+   * Drawn on ::after so a consumer's focus-ring utility - which also compiles
+   * to box-shadow - is not fighting us for the same property on the host.
+   */
+  .glass-surface--glow::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+
+    box-shadow:
+      /* Specular edge. */
+      inset 0 0 0 1px var(--glass-rim, rgba(255, 255, 255, 0.14)),
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.16),
+      inset 0 -1px 1px 0 rgba(255, 255, 255, 0.05),
+      /* Layered bloom: tight and bright, out to wide and faint. */
+      0 0 20px 2px var(--glass-glow, transparent),
+      0 0 40px 4px var(--glass-glow-mid, transparent),
+      0 0 60px 6px var(--glass-glow-far, transparent);
+  }
+
+  /* docs/philosophy.md #3: honour the user's motion preference. */
+  @media (prefers-reduced-motion: reduce) {
+    .glass-surface,
+    .glass-surface::before,
+    .glass-surface::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
+}

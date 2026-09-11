@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, HTMLAttributes } from 'react'
 import type { BlurValue, OpacityValue, ColorName, RadiusValue, ShadowValue } from '../../tokens'
 import type { PresetName } from '../../presets/types'
 
@@ -27,9 +27,14 @@ export type PanelPreset = 'light' | 'medium' | 'heavy'
 export type ButtonPreset = 'solid' | 'glass' | 'minimal'
 
 /**
- * GlassContainer component props
+ * GlassContainer component props.
+ *
+ * Extends HTMLAttributes because the component spreads its rest props onto the
+ * rendered element - `onClick`, `id`, `aria-*` and friends all pass through.
+ * `color` is omitted so it can carry our ColorName token instead of the HTML
+ * presentational attribute.
  */
-export interface GlassContainerProps {
+export interface GlassContainerProps extends Omit<HTMLAttributes<HTMLElement>, 'color'> {
   /**
    * Glass effect configuration
    * - `true`: Use default glass effect (blur: 'md', opacity: 0.25)

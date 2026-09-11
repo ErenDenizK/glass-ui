@@ -119,5 +119,45 @@ describe('Button', () => {
     rerender(<Button variant="outline">Outline</Button>)
     expect(screen.getByRole('button')).toBeInTheDocument()
   })
-})
 
+  /**
+   * Regression cover for the wrapper-element bugs: the button used to be
+   * nested inside a block-level motion.div, which stacked adjacent buttons
+   * into a column and swallowed `fullWidth`.
+   */
+  describe('layout', () => {
+    it('renders the button as the root element, with no wrapper', () => {
+      const { container } = render(<Button>Click</Button>)
+      const root = container.firstChild as HTMLElement
+
+      expect(root.tagName.toLowerCase()).toBe('button')
+    })
+
+    it('puts fullWidth on the button itself', () => {
+      const { container } = render(<Button fullWidth>Wide</Button>)
+      const root = container.firstChild as HTMLElement
+
+      expect(root.tagName.toLowerCase()).toBe('button')
+      expect(root).toHaveClass('w-full')
+    })
+
+    it('is inline-flex so adjacent buttons sit on one line', () => {
+      const { container } = render(<Button>Click</Button>)
+      expect(container.firstChild as HTMLElement).toHaveClass('inline-flex')
+    })
+
+    it('keeps a focus-visible ring utility on the button', () => {
+      const { container } = render(<Button>Click</Button>)
+      const root = container.firstChild as HTMLElement
+
+      expect(root.className).toContain('focus-visible:ring-2')
+      // The ring compiles to box-shadow; nothing may set it inline.
+      expect(root.style.boxShadow).toBe('')
+    })
+
+    it('marks the button busy while loading', () => {
+      render(<Button loading>Saving</Button>)
+      expect(screen.getByRole('button')).toHaveAttribute('aria-busy', 'true')
+    })
+  })
+})

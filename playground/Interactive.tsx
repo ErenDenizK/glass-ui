@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react'
 import { GlassContainer, listPresets } from 'glass-ui'
 import type { ColorName, BlurValue, RadiusValue, ShadowValue, PresetName } from 'glass-ui'
+import { asset } from './lib/asset'
 
 // Background cycling - local assets only
 const backgrounds = [
-  { path: '/backgrounds/field.png', name: 'Open Field' },
-  { path: '/backgrounds/forest.png', name: 'Forest Path' },
-  { path: '/backgrounds/bamboo.png', name: 'Bamboo Forest' },
+  { path: asset('/backgrounds/field.png'), name: 'Open Field' },
+  { path: asset('/backgrounds/forest.png'), name: 'Forest Path' },
+  { path: asset('/backgrounds/bamboo.png'), name: 'Bamboo Forest' },
 ]
 
 export default function Interactive() {

@@ -1,27 +1,28 @@
-import { forwardRef, useState } from 'react'
+import { forwardRef } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { GlassContainer } from '../../glass-system'
-import { AnimatedContainer } from '../../animation'
 import { cn } from '../../utils'
 import { variantStyles, sizeStyles, iconOnlySizes, variantGlassDefaults } from './styles'
 import type { ButtonProps } from './types'
 
 /**
- * Button Component
- * 
- * Glass-enhanced button with animations and multiple variants
- * 
+ * The button *is* the animated element.
+ *
+ * It used to be wrapped in a `motion.div`, which is `display: block` - so two
+ * adjacent buttons stacked into a column and `fullWidth` stretched the wrapper
+ * while leaving the button at its intrinsic width. Animating the glass surface
+ * directly removes the wrapper and both bugs with it.
+ */
+const MotionGlassContainer = motion.create(GlassContainer)
+
+/**
+ * Button - glass-enhanced button with Material Design 3 motion.
+ *
  * @example
- * // Default button
  * <Button>Click me</Button>
- * 
- * // With icon
  * <Button leadingIcon={<Icon />}>Save</Button>
- * 
- * // Loading state
- * <Button loading>Processing...</Button>
- * 
- * // Custom glass
- * <Button glass={{ blur: 'lg', opacity: 0.5 }}>Heavy Glass</Button>
+ * <Button loading>Processing…</Button>
+ * <Button glass={{ blur: 'lg', opacity: 0.5 }}>Heavy glass</Button>
  */
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
@@ -44,130 +45,73 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    // Determine glass config
-    const glassConfig = glass !== undefined 
-      ? glass 
-      : variantGlassDefaults[variant]
-    
-    // Icon-only mode overrides
-    const isIconOnly = iconOnly || (!children && (leadingIcon || trailingIcon))
-    
-    // Disabled or loading state
+    const glassConfig = glass !== undefined ? glass : variantGlassDefaults[variant]
+    const isIconOnly = iconOnly || (!children && Boolean(leadingIcon || trailingIcon))
     const isDisabled = disabled || loading
-    
-    // Hover state for shadow enhancement
-    const [isHovered, setIsHovered] = useState(false)
-    
+
+    // docs/philosophy.md #3: honour the OS "reduce motion" setting.
+    const reduceMotion = useReducedMotion()
+    const animated = !isDisabled && !reduceMotion
+
     return (
-      <AnimatedContainer
-        // Hover: Subtle scale-up
-        whileHover={!isDisabled ? {
-          scale: 1.015,
-          transition: {
-            duration: 0.2,
-            ease: [0.4, 0.0, 0.2, 1], // Material Standard
-          }
-        } : undefined}
-        
-        // Tap: Quick scale-down (impact feel)
-        whileTap={!isDisabled ? {
-          scale: 0.97,
-          transition: {
-            duration: 0.1,
-            ease: [0.4, 0.0, 1, 1], // Material Accelerate
-          }
-        } : undefined}
-        
-        onMouseEnter={() => !isDisabled && setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-        
+      <MotionGlassContainer
+        as="button"
+        ref={ref}
+        glass={glassConfig}
+        color={color}
+        radius={radius}
+        shadow={shadow}
+        disabled={isDisabled}
+        aria-busy={loading || undefined}
+        whileHover={
+          animated
+            ? { scale: 1.015, transition: { duration: 0.2, ease: [0.4, 0.0, 0.2, 1] } }
+            : undefined
+        }
+        whileTap={
+          animated
+            ? { scale: 0.97, transition: { duration: 0.1, ease: [0.4, 0.0, 1, 1] } }
+            : undefined
+        }
         className={cn(
-          fullWidth && 'w-full'
+          'inline-flex items-center justify-center',
+          'transition-shadow duration-200',
+
+          // Keyboard focus. This is only visible because the glass surface no
+          // longer writes box-shadow inline - Tailwind's ring compiles to
+          // box-shadow and inline styles used to win.
+          'focus:outline-none',
+          'focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2',
+          'focus-visible:ring-offset-black/20',
+
+          variantStyles[variant],
+          isIconOnly ? iconOnlySizes[size] : sizeStyles[size],
+
+          fullWidth && 'w-full',
+          isDisabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+
+          className
         )}
+        {...props}
       >
-        <GlassContainer
-          as="button"
-          ref={ref}
-          glass={glassConfig}
-          color={color}
-          radius={radius}
-          // Shadow depth increases on hover (elevation)
-          shadow={isHovered && !isDisabled && shadow !== 'none' 
-            ? shadow === 'xs' ? 'sm'
-              : shadow === 'sm' ? 'md'
-              : shadow === 'md' ? 'lg'
-              : shadow === 'lg' ? 'xl'
-              : shadow
-            : shadow
-          }
-          disabled={isDisabled}
-          className={cn(
-            // Base styles
-            'relative inline-flex items-center justify-center',
-            'transition-shadow duration-200', // Smooth shadow transition
-            
-            // Focus styles
-            'focus:outline-none',
-            'focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent',
-            
-            // Variant styles
-            variantStyles[variant],
-            
-            // Size styles
-            isIconOnly ? iconOnlySizes[size] : sizeStyles[size],
-            
-            // State styles
-            isDisabled && 'opacity-50 cursor-not-allowed',
-            !isDisabled && 'cursor-pointer',
-            
-            // Custom classes
-            className
+        {loading && (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          </span>
+        )}
+
+        <span className={cn('flex items-center justify-center gap-2', loading && 'opacity-0')}>
+          {leadingIcon && (
+            <span className="flex-shrink-0 flex items-center justify-center">{leadingIcon}</span>
           )}
-          {...(props as Omit<React.HTMLAttributes<HTMLButtonElement>, 'color'>)}
-        >
-          {/* Loading spinner */}
-          {loading && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            </div>
+          {children && <span>{children}</span>}
+          {trailingIcon && (
+            <span className="flex-shrink-0 flex items-center justify-center">{trailingIcon}</span>
           )}
-          
-          {/* Content (hidden during loading) */}
-          <div
-            className={cn(
-              'flex items-center justify-center gap-2',
-              loading && 'opacity-0'
-            )}
-          >
-            {leadingIcon && (
-              <span 
-                className="flex-shrink-0 flex items-center justify-center"
-                style={{ 
-                  transform: 'translateZ(0)',
-                  WebkitFontSmoothing: 'antialiased'
-                }}
-              >
-                {leadingIcon}
-              </span>
-            )}
-            {children && <span>{children}</span>}
-            {trailingIcon && (
-              <span 
-                className="flex-shrink-0 flex items-center justify-center"
-                style={{ 
-                  transform: 'translateZ(0)',
-                  WebkitFontSmoothing: 'antialiased'
-                }}
-              >
-                {trailingIcon}
-              </span>
-            )}
-          </div>
-        </GlassContainer>
-      </AnimatedContainer>
+        </span>
+      </MotionGlassContainer>
     )
   }
 )
 
 Button.displayName = 'Button'
-

@@ -159,20 +159,20 @@ function parseOpacityValue(value: OpacityValue | number | undefined): number {
 }
 
 /**
- * Check if backdrop-filter is supported
+ * Rewrite an hsl()/hsla() colour token with a new alpha channel.
+ *
+ * Tokens are authored as `hsla(217, 91%, 60%, 0.15)`; presets and the layer
+ * system need the same hue at a different opacity. Anything that is not an
+ * hsl/hsla string is returned untouched so a custom token cannot break render.
  */
-export function supportsBackdropFilter(): boolean {
-  if (typeof window === 'undefined') return false
-  
-  // Check if CSS.supports is available (not available in jsdom)
-  if (typeof CSS === 'undefined' || !CSS.supports) {
-    return false
-  }
-  
-  return (
-    CSS.supports('backdrop-filter', 'blur(1px)') ||
-    CSS.supports('-webkit-backdrop-filter', 'blur(1px)')
-  )
+export function withAlpha(color: string, alpha: number): string {
+  const match = color.match(/hsla?\(([^)]+)\)/)
+  if (!match) return color
+
+  const [h, s, l] = match[1].split(',').map((part) => part.trim())
+  if (h === undefined || s === undefined || l === undefined) return color
+
+  return `hsla(${h}, ${s}, ${l}, ${alpha})`
 }
 
 /**

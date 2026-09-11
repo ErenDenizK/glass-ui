@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { GlassContainer } from 'glass-ui'
+import { asset } from '../lib/asset'
 
 // 3 Animation Presets (Character-driven)
 const ANIMATION_PRESETS = {
@@ -120,7 +121,7 @@ export default function AnimationLab() {
     <div 
       className="min-h-screen relative overflow-hidden"
       style={{
-        backgroundImage: 'url(/backgrounds/field.png)',
+        backgroundImage: `url(${asset('/backgrounds/field.png')})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundAttachment: 'fixed',

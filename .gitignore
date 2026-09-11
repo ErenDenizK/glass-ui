@@ -10,6 +10,7 @@ coverage/
 # Production
 dist/
 build/
+site-dist/
 *.tsbuildinfo
 
 # Playground - temporary files only

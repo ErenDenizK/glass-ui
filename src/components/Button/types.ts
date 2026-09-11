@@ -23,9 +23,28 @@ export type ButtonSize = 'sm' | 'md' | 'lg' | 'xl'
 export type IconPosition = 'leading' | 'trailing'
 
 /**
+ * DOM event handlers whose names Framer Motion reuses for its own animation and
+ * gesture callbacks. Omitting them keeps the two type systems from colliding on
+ * the animated button.
+ */
+type MotionConflictingHandlers =
+  | 'color'
+  | 'onAnimationStart'
+  | 'onAnimationEnd'
+  | 'onAnimationIteration'
+  | 'onDrag'
+  | 'onDragStart'
+  | 'onDragEnd'
+  | 'onDragEnter'
+  | 'onDragLeave'
+  | 'onDragOver'
+  | 'onDrop'
+
+/**
  * Button component props
  */
-export interface ButtonProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'color'> {
+export interface ButtonProps
+  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, MotionConflictingHandlers> {
   /**
    * Button variant style
    * @default 'primary'

@@ -18,8 +18,12 @@ The playground is published from `main` and `dev` on every push:
 
 **https://erendenizk.github.io/glass-ui/**
 
-Published from `dev` on every push. The deploy workflow enables Pages itself, so
-no repository setting needs changing by hand.
+Published from `dev` on every push.
+
+> **One-time setup:** repository **Settings → Pages → Source → _GitHub Actions_**.
+> A workflow cannot do this for you — creating a Pages site needs a token with
+> `repo` scope, which `GITHUB_TOKEN` is not. Until it is set, the deploy job
+> fails at `configure-pages` while the build itself succeeds.
 
 Run it locally:
 

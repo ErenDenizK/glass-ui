@@ -42,13 +42,15 @@ jobs:
         env:
           BASE_PATH: /${{ github.event.repository.name }}/
 
+      # Requires Pages to be enabled once, by hand:
+      #   Settings -> Pages -> Source -> GitHub Actions
+      #
+      # `enablement: true` looks like it would automate that, but it cannot:
+      # creating a Pages site needs a token with repo scope, and the workflow's
+      # GITHUB_TOKEN is refused with "Create Pages site failed. Resource not
+      # accessible by integration". Left at the default so the failure message
+      # names the real, actionable cause.
       - uses: actions/configure-pages@v5
-        with:
-          # Turn Pages on via the API on the first run, so the repository needs
-          # no manual Settings change. Without this the first deploy fails with
-          # "Get Pages site failed ... verify that the repository has Pages
-          # enabled".
-          enablement: true
 
       - uses: actions/upload-pages-artifact@v3
         with:

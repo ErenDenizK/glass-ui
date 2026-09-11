@@ -141,6 +141,12 @@ build      dist/index.mjs 17 kB · index.js 10 kB · index.d.ts 18 kB · style.c
 site       builds and serves correctly from a /<repo>/ sub-path
 ```
 
+**CI passes on GitHub.** The Pages deploy job builds successfully but cannot
+publish until Pages is enabled once by hand — **Settings → Pages → Source →
+_GitHub Actions_**. A workflow cannot do this itself: creating a Pages site
+needs a token with `repo` scope, and `GITHUB_TOKEN` is refused with
+"Resource not accessible by integration".
+
 The added tests assert the **contract** — which classes apply, which custom
 properties carry which values, that the button is its own root element — rather
 than concrete inline CSS. That is what makes them able to catch this class of

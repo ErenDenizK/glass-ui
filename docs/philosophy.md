@@ -1,6 +1,25 @@
 # Glass UI Design Philosophy
 
-> The principles and thinking behind Glass UI
+> The principles and thinking behind Glass UI.
+>
+> **Archived 14 October 2026.** These are the principles the project was built
+> on, kept as written. Several were not upheld, and that gap is the useful part
+> of the document rather than something to tidy away:
+>
+> - **#4 Performance** — "max 4 concurrent glass elements" was never enforced
+>   anywhere. The blur cap it rests on also turns out to target the lesser
+>   variable; see the amendment in [`decisions.md`](./decisions.md) §5.
+> - **#5 Accessibility over aesthetics** — "WCAG AA contrast (4.5:1 minimum)"
+>   is checked by nothing. `ColorToken.text` is defined for all six colours and
+>   read by nothing, so `Button` hardcodes `text-white` for every variant. A
+>   keyboard focus ring was invisible in shipped output for nine months.
+> - **#6 Mobile first** — the responsive strategy was never built and has been
+>   formally withdrawn.
+> - **#7 Escape hatches** — this one *was* eventually honoured, but only after
+>   the September 2026 rewrite onto cascade layers. Before that, inline styles
+>   outranked every consumer class and silently broke the promise.
+>
+> See [`STATUS.md`](./STATUS.md) for the measured account.
 
 ---
 

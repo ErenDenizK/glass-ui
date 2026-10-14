@@ -11,11 +11,16 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
+      // Scope to the published library. Without `include`, the report also
+      // counted the playground, the eslint config and the Vite configs, which
+      // made the headline number meaningless.
+      include: ['src/**/*.{ts,tsx}'],
       exclude: [
-        'node_modules/',
         'src/test/',
         '**/*.test.{ts,tsx}',
-        '**/*.config.{ts,js}',
+        '**/__tests__/**',
+        '**/index.ts',
+        'src/vite-env.d.ts',
       ],
     },
   },

@@ -115,6 +115,26 @@ blur: {
 - `prefers-reduced-motion` support
 - Optional solid fallback for low-end devices
 
+> **AMENDED, October 2026 — this decision was never implemented, and has now
+> been withdrawn.**
+>
+> None of the above shipped except `prefers-reduced-motion`. There was no
+> media-query resolution anywhere in the library; `blurMobile` was read by
+> nothing, `durationMobile` was a byte-identical copy of `duration`, and both
+> `getDuration()` and `isLowEndDevice()` had no callers. The tokens were
+> removed in the archival pass rather than left standing as evidence of a
+> feature that did not exist.
+>
+> The rationale above is also now questionable on its own terms. A 2026
+> measurement of `backdrop-filter` cost found it is dominated by **how often
+> the blurred region is invalidated, not by blur radius** — a static blur over
+> static content is cached and nearly free, while a modest blur over moving
+> content re-runs snapshot → blur → composite every frame. Capping the radius,
+> which is what this decision and decision 4 both do, addresses the lesser
+> variable. A future version should cap *invalidation* instead: never
+> transition the blur radius, and keep large glass surfaces off moving
+> backdrops.
+
 ---
 
 ## 6. Interactive Effects: Mouse Glow
@@ -319,6 +339,19 @@ primary: {
 - Minimum 70% overall
 - 100% for utility functions
 - Visual regression via examples (manual)
+
+> **MEASURED, October 2026.** This was never verified until the archival pass,
+> because `vitest.config.ts` named the `v8` coverage provider while
+> `@vitest/coverage-v8` was absent from `devDependencies` — so `npm run
+> test:coverage` had always failed with `MISSING DEPENDENCY`. With the
+> provider installed and the report scoped to `src/`, the library measures
+> **94.22% statements / 84.78% branches / 89.47% functions** across 74 tests.
+> The 70% floor was met comfortably; nobody had ever been able to see it.
+>
+> Visual regression was never built, and that is the gap that mattered: every
+> one of the six defects in the September 2026 audit, and two of the three
+> found in October, were invisible to unit tests because they live in CSS
+> cascade behaviour or in packaging, neither of which jsdom evaluates.
 
 **Test Types:**
 - Unit: Component rendering, props validation

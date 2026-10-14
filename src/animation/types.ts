@@ -3,11 +3,12 @@ import type { Variants, Transition } from 'framer-motion'
 /**
  * Animation preset names
  */
-export type AnimationPreset = 
+export type AnimationPreset =
   | 'fadeIn'
   | 'slideUp'
   | 'scale'
   | 'hover'
+  | 'playfulHover'
 
 /**
  * Animation configuration

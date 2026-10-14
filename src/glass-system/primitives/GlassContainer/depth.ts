@@ -47,11 +47,22 @@ const attenuation: Record<GlassDepth, { opacity: number; blur: number }> = {
   3: { opacity: 0.3, blur: 0.4 },
 }
 
-/** Clamp any number to a usable depth level. */
+/**
+ * Clamp any number to a usable depth level.
+ *
+ * Rounds before narrowing. The cast used to be unguarded, so a fractional or
+ * NaN depth - which a plain-JS consumer can pass as `layer`, or any computed
+ * value can produce - fell straight through to `attenuation[2.5]` and threw
+ * `Cannot read properties of undefined`.
+ */
 export function clampDepth(depth: number): GlassDepth {
-  if (depth <= 1) return 1
-  if (depth >= MAX_DEPTH) return MAX_DEPTH
-  return depth as GlassDepth
+  // NaN has no ordering, so it cannot be clamped - default to a lone surface.
+  // +/-Infinity do order, and fall out of the bounds checks below correctly.
+  if (Number.isNaN(depth)) return 1
+  const level = Math.round(depth)
+  if (level <= 1) return 1
+  if (level >= MAX_DEPTH) return MAX_DEPTH
+  return level as GlassDepth
 }
 
 /**

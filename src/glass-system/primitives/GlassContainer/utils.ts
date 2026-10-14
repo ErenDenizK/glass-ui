@@ -3,6 +3,7 @@ import { getPreset, listPresets } from '../../presets/context-presets'
 import type { GlassConfig, PanelPreset, ButtonPreset } from './types'
 import type { BlurValue, OpacityValue } from '../../tokens'
 import type { PresetName } from '../../presets/types'
+import { isDevEnvironment } from '../../../utils/env'
 
 /**
  * Panel presets for container/background glass
@@ -89,7 +90,7 @@ export function parseGlassConfig(
       }
     }
     // If string but not a valid preset, fall back to default
-    if (process.env.NODE_ENV === 'development') {
+    if (isDevEnvironment()) {
       console.warn(`Invalid preset name: "${glass}". Using default.`)
     }
     return {
@@ -157,26 +158,4 @@ export function withAlpha(color: string, alpha: number): string {
   return `hsla(${h}, ${s}, ${l}, ${alpha})`
 }
 
-/**
- * Detect if device is low-end (for performance optimization)
- */
-export function isLowEndDevice(): boolean {
-  if (typeof navigator === 'undefined') return false
-  
-  // Check hardware concurrency (CPU cores)
-  const cores = navigator.hardwareConcurrency || 2
-  
-  // Check device memory (if available)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const memory = (navigator as any).deviceMemory || 4
-  
-  // Check connection (if available)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const connection = (navigator as any).connection
-  const slowConnection = 
-    connection?.effectiveType === '2g' || 
-    connection?.effectiveType === 'slow-2g'
-  
-  return cores < 4 || memory < 4 || slowConnection
-}
 

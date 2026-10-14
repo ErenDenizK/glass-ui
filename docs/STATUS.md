@@ -2,7 +2,106 @@
 
 > Where Glass UI actually stands, measured rather than assumed.
 >
-> Audit date: 11 September 2026 · Audited commit: `092e6b6` · Branch: `dev`
+> **Archival pass: 14 October 2026** · Prior audit: 11 September 2026 · Branch: `dev`
+
+---
+
+## Archival pass — 14 October 2026
+
+The project was archived in this pass. [`../README.md`](../README.md) carries the
+reasoning; this section records what was found and fixed on the way out, so the
+tree left behind is accurate.
+
+### Three defects the September audit's own "fixed" table had wrong
+
+All three were invisible to CI, for one shared reason: **CI never installs and
+loads what it publishes**, and the playground aliases `glass-ui` to `src/`, so
+neither path ever exercised the built package.
+
+| # | Defect | Evidence |
+|---|---|---|
+| 1 | **The CommonJS entry point could not be loaded at all.** `package.json` sets `"type": "module"` and the build emitted the CJS bundle as `index.js`, so Node parsed genuine CJS as ESM | `require('glass-ui')` → `ReferenceError: exports is not defined in ES module scope`. Fixed by emitting `index.cjs`; `require()` now resolves 33 exports |
+| 2 | **Every dev-mode warning was compiled out of every build.** The fix for the old `process is not defined` crash replaced `process.env.NODE_ENV` with the literal `'production'` at build time, turning both warning guards into `if (false)` | `grep process dist/*` → 0 hits. The README advertised a blur-clamp warning that could never fire. Fixed with a runtime guard (`src/utils/env.ts`) that is safe where `process` is undefined; the warning now fires in tests |
+| 3 | **`clampDepth` was a type hole that crashed on any non-integer depth.** `return depth as GlassDepth` let `2.5` through into a `Record<1 \| 2 \| 3, …>` lookup | `attenuateForDepth(2.5, …)` → `TypeError: Cannot read properties of undefined`. A plain-JS consumer writing `layer={2.5}`, or any computed value, hit it. Now rounds, with `NaN` falling back to depth 1 |
+
+### A silent behavioural bug, and the test that could not catch it
+
+`AnimatedContainer`'s `enableHover` spread the whole hover preset over the
+chosen one. The hover preset carries `variants` but no `initial`/`animate`, so
+`preset="fadeIn" enableHover` kept fadeIn's `initial: 'hidden'` while replacing
+the variant map with hover's — which has no `hidden` label to resolve. **The
+entrance animation silently stopped happening.**
+
+The only test covering that combination asserted
+`expect(container.firstChild).toBeInTheDocument()` — a tautology that passes
+whatever the merge produces. This is the September audit's own diagnosis still
+live in the tree: the suite asserted the implementation, not the contract. The
+merge now combines variant maps and applies hover through
+`whileHover`/`whileTap`; the tautology was replaced with three contract tests.
+
+### Coverage, measured for the first time
+
+`vitest.config.ts` named the `v8` provider while `@vitest/coverage-v8` was
+absent from `devDependencies`, so `npm run test:coverage` had **always** failed
+with `MISSING DEPENDENCY`. With the provider installed and the report scoped to
+`src/`:
+
+```
+94.22% statements · 84.78% branches · 89.47% functions · 74 tests
+```
+
+`decisions.md` §12's 70% floor was met comfortably. Nobody had ever been able
+to see it.
+
+### Accessibility gaps closed
+
+- **`forced-colors: active` did not remove the material.** That mode overrides
+  `background-color` and `border-color` with system colours but **does not reset
+  `backdrop-filter`** — leaving a system-coloured panel still blurring its
+  backdrop, i.e. low-contrast mush in exactly the mode a user enables to avoid
+  it. The material is now dropped outright for a flat system-coloured surface.
+- **`prefers-reduced-transparency` is now honoured** where the browser reports
+  it. Noted in the stylesheet as a Chromium-only bonus rather than a guarantee:
+  Firefox keeps it behind a flag and WebKit holds a standards position against
+  exposing it at all, on fingerprinting grounds.
+
+### The token layer was decorative; it is now wired
+
+`README.md` claimed "depth, light direction and motion are decided once, in
+tokens, and every component reads from them." **For motion that was false.**
+`animation/presets.ts` re-declared `[0.4, 0.0, 0.2, 1]` as a literal and
+`Button.tsx` hardcoded both its curves and its durations, so nothing read
+`tokens/easing.ts` or `tokens/duration.ts`. The control points are now the
+single source of truth, with the CSS `cubic-bezier()` strings derived from them,
+and both consumers read from the tokens.
+
+### Dead code removed
+
+| Removed | Why |
+|---|---|
+| `isLowEndDevice()` | Unreachable — `utils.ts` is never re-exported, so it was not even a package export. Confirmed absent from `dist`. |
+| `createVariants` / `VariantConfig` (`src/utils/variants.ts`) | Publicly exported, zero callers, documented only by its own example comment |
+| `blurMobile`, `durationMobile`, `durationDesktop`, `getDuration()` | The never-implemented responsive strategy from `decisions.md` §5, now formally withdrawn there. `durationMobile` was a byte-identical copy of `duration` |
+| `playground/StaticTests.tsx` | 214 orphaned lines with no importer, typechecked and linted on every CI run |
+| 3 × `.gitkeep` | Stale markers beside populated directories |
+| `.cursorrules` | 443 lines of superseded Cursor config that nothing reads, pointing at three paths that do not exist, and carrying a fictional team roster |
+
+`playfulHover` was also added to the `AnimationPreset` union — it existed in
+`animationPresets` but was unreachable through the typed API.
+
+### Still open, deliberately
+
+The toolchain rot (vitest 4 majors behind with two criticals, vite 3 behind,
+`framer-motion` 3 behind, ESLint 8 EOL, Tailwind 4 a CSS-first rewrite) was left
+in place. `npm audit` reports 43 vulnerabilities and **`npm audit --omit=dev`
+reports 0** — every one is in the dev toolchain, so a consumer inherits nothing.
+A simultaneous multi-major migration is not work an archived project should
+carry. The 14.3 MB of lossless playground PNGs were likewise left: they are
+already in history, so re-encoding them would only help new clones if history
+were rewritten.
+
+`Button` is still absent from its own showcase, and the visual-language and
+contrast gaps described below are unchanged.
 
 ---
 

@@ -14,6 +14,39 @@ const compositeAlpha = (alphas: number[]) =>
   1 - alphas.reduce((remaining, a) => remaining * (1 - a), 1)
 
 describe('glass depth', () => {
+  describe('clampDepth', () => {
+    it('narrows whole numbers to the supported levels', () => {
+      expect(clampDepth(1)).toBe(1)
+      expect(clampDepth(2)).toBe(2)
+      expect(clampDepth(3)).toBe(3)
+      expect(clampDepth(0)).toBe(1)
+      expect(clampDepth(9)).toBe(3)
+    })
+
+    /*
+     * The cast used to be unguarded, so a fractional depth went straight into
+     * a `Record<1 | 2 | 3, …>` lookup and threw at render time. `layer` is
+     * typed, but a plain-JS consumer or any computed value can defeat that.
+     */
+    it('rounds fractional depths instead of crashing', () => {
+      expect(clampDepth(1.4)).toBe(1)
+      expect(clampDepth(1.5)).toBe(2)
+      expect(clampDepth(2.5)).toBe(3)
+    })
+
+    it('falls back to depth 1 for non-finite input', () => {
+      expect(clampDepth(NaN)).toBe(1)
+      expect(clampDepth(Infinity)).toBe(3)
+      expect(clampDepth(-Infinity)).toBe(1)
+    })
+
+    it('keeps attenuateForDepth total for any number', () => {
+      for (const d of [NaN, 1.5, 2.5, -3, 1e9]) {
+        expect(() => attenuateForDepth(d, 10, 0.25)).not.toThrow()
+      }
+    })
+  })
+
   describe('attenuateForDepth', () => {
     it('leaves a lone surface untouched', () => {
       expect(attenuateForDepth(1, 10, 0.25)).toEqual({ blur: 10, opacity: 0.25 })

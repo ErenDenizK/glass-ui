@@ -27,7 +27,7 @@ export default function App() {
               : 'bg-white/10 text-white border-white/20 hover:bg-white/20'
           }`}
         >
-          Old Playground
+          Interactive
         </button>
       </div>
 

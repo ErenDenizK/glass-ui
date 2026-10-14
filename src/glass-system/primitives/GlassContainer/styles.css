@@ -92,6 +92,12 @@
    * real border, which survives preflight's border reset and costs no layout.
    * Drawn on ::after so a consumer's focus-ring utility - which also compiles
    * to box-shadow - is not fighting us for the same property on the host.
+   *
+   * `--glass-rim` is a deliberate override hook rather than a computed value:
+   * the specular edge is a fixed white highlight by default and does not track
+   * the `color` prop. Set it yourself to tint the rim:
+   *
+   *   <GlassContainer style={{ '--glass-rim': 'rgba(120, 180, 255, 0.3)' }} />
    */
   .glass-surface--glow::after {
     content: '';
@@ -119,6 +125,52 @@
       transition-duration: 0.01ms !important;
       animation-duration: 0.01ms !important;
       animation-iteration-count: 1 !important;
+    }
+  }
+
+  /*
+   * Forced colors / Windows High Contrast.
+   *
+   * This mode exists to guarantee contrast, and it overrides background-color
+   * and border-color with system colors - but it does NOT reset
+   * `backdrop-filter`. Left alone, the result is a system-coloured panel that
+   * is still blurring whatever sits behind it: low-contrast mush in precisely
+   * the mode a user turned on to avoid it. So the material is removed outright
+   * and replaced with a flat system-coloured surface.
+   */
+  @media (forced-colors: active) {
+    .glass-surface {
+      background: Canvas;
+      border: 1px solid CanvasText;
+      box-shadow: none;
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+      filter: none;
+    }
+
+    .glass-surface::before,
+    .glass-surface::after {
+      content: none;
+    }
+  }
+
+  /*
+   * Reduced transparency.
+   *
+   * Chromium-only in practice: Firefox keeps it behind a flag and WebKit has a
+   * standards position against exposing it at all, on fingerprinting grounds.
+   * So this is a bonus for the users whose browser reports it, never the
+   * primary accessibility guarantee - a product built on this system still
+   * owes its users an opacity control of its own.
+   */
+  @media (prefers-reduced-transparency: reduce) {
+    .glass-surface--blur {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+
+    .glass-surface--blur::before {
+      background-color: var(--glass-bg-fallback, var(--glass-bg, transparent));
     }
   }
 }

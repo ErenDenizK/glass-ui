@@ -55,13 +55,49 @@ describe('AnimatedContainer', () => {
     expect(element.className).toContain('custom-class')
   })
 
-  it('combines preset and hover', () => {
-    const { container } = render(
-      <AnimatedContainer preset="fadeIn" enableHover>
-        Content
-      </AnimatedContainer>
-    )
-    expect(container.firstChild).toBeInTheDocument()
+  /*
+   * This block used to be a single `toBeInTheDocument()` assertion, which
+   * passed no matter what the prop merge produced - and it was hiding a real
+   * bug: `enableHover` replaced the preset's variant map wholesale, so
+   * `preset="fadeIn" enableHover` never faded in.
+   *
+   * These assert the contract instead: both sets of variant labels have to
+   * survive the merge, and the preset keeps its own lifecycle props.
+   */
+  describe('preset combined with enableHover', () => {
+    it('keeps the entrance animation reachable', () => {
+      const { container } = render(
+        <AnimatedContainer preset="fadeIn" enableHover>
+          Content
+        </AnimatedContainer>
+      )
+      const element = container.firstChild as HTMLElement
+
+      // fadeIn starts at opacity 0 and animates to the `visible` label. If the
+      // hover preset had clobbered the variant map there would be no `hidden`
+      // or `visible` to resolve and the element would render fully opaque.
+      expect(element).toBeInTheDocument()
+      expect(element.style.opacity).not.toBe('')
+    })
+
+    it('does not drop the preset when hover is added', () => {
+      const withPreset = render(
+        <AnimatedContainer preset="fadeIn">Content</AnimatedContainer>
+      ).container.firstChild as HTMLElement
+      const withBoth = render(
+        <AnimatedContainer preset="fadeIn" enableHover>
+          Content
+        </AnimatedContainer>
+      ).container.firstChild as HTMLElement
+
+      // Adding hover must not change the entrance behaviour.
+      expect(withBoth.style.opacity).toBe(withPreset.style.opacity)
+    })
+
+    it('still applies hover on its own, with no preset', () => {
+      const { container } = render(<AnimatedContainer enableHover>Content</AnimatedContainer>)
+      expect(container.firstChild).toBeInTheDocument()
+    })
   })
 })
 

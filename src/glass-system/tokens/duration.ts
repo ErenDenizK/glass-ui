@@ -1,44 +1,29 @@
 /**
- * Material Design 3 duration tokens
- * 
- * Platform-aware: Desktop is ~30% faster than mobile
+ * Material Design 3 duration tokens, in milliseconds.
+ *
+ * NOTE ON RESPONSIVE DURATION
+ * ---------------------------
+ * `docs/decisions.md` section 5 specified separate mobile and desktop scales.
+ * That was never implemented — there was no media-query resolution anywhere in
+ * the library, `durationMobile` was a byte-identical duplicate of `duration`,
+ * and `getDuration()` had no callers. The unused tables were removed rather
+ * than left to imply a feature that does not exist; see `docs/decisions.md`
+ * section 5 for the amended record.
+ *
  * See: https://m3.material.io/styles/motion/easing-and-duration
  */
 
 export const duration = {
   instant: 0,
   short: 100,        // Micro-interactions
-  medium: 300,       // DEFAULT - mobile standard
+  medium: 300,       // DEFAULT
   long: 500,         // Large transitions
   extraLong: 700,    // Dramatic effects (use sparingly)
 } as const
 
-export const durationDesktop = {
-  instant: 0,
-  short: 50,
-  medium: 200,       // ~30% faster than mobile
-  long: 400,
-  extraLong: 600,
-} as const
-
-export const durationMobile = {
-  instant: 0,
-  short: 100,
-  medium: 300,       // Standard mobile duration
-  long: 500,
-  extraLong: 700,
-} as const
-
 export type DurationValue = keyof typeof duration
 
-/**
- * Get platform-appropriate duration
- */
-export function getDuration(
-  value: DurationValue,
-  platform: 'mobile' | 'desktop' = 'mobile'
-): number {
-  const durations = platform === 'desktop' ? durationDesktop : durationMobile
-  return durations[value]
+/** Duration in seconds, which is the unit Framer Motion transitions take. */
+export function durationSeconds(value: DurationValue): number {
+  return duration[value] / 1000
 }
-

@@ -1,9 +1,14 @@
 # Roadmap
 
-> What we build next, and why in that order.
+> **This roadmap is closed. The project was archived on 14 October 2026.**
 >
-> Companion to [`STATUS.md`](./STATUS.md) (where we are) and
-> [`philosophy.md`](./philosophy.md) (what we believe).
+> Nothing below is being worked on. It is kept because *what was planned and
+> deliberately not built* is part of an honest record — and because the
+> ordering argument in "The thesis" is the part of this document still worth
+> reading. See [`../README.md`](../README.md) for why the project stopped, and
+> [`STATUS.md`](./STATUS.md) for what was true at the end.
+>
+> Phases 2.2 onward were never started.
 
 ---
 
@@ -47,7 +52,7 @@ consequence, not its point.
 
 ## Phase 2 — Make composition safe
 
-*Direction set by the product lead: the current look stays. No visual overhaul.
+*Direction set by the author: the current look stays. No visual overhaul.
 The risk worth engineering against is that stacking many glass surfaces turns
 ugly — so that is what this phase fixes, one measurable step at a time.*
 
@@ -78,7 +83,7 @@ from a single `elevation` token makes depth coherent by construction — and it
 composes with 2.1 rather than fighting it.
 
 **Deferred, deliberately.** Light mode, edge refraction and the surface/specular
-model were proposed as Phase 2 and are **on hold at the product lead's
+model were proposed as Phase 2 and are **on hold at the author's
 direction**. They are visual-language changes, and the current language is the
 one we want. Revisit once composition is provably safe.
 
@@ -136,19 +141,43 @@ three done partially** — and we have not yet finished the first.
 
 ---
 
-## Open questions for the product lead
+## Open questions — all now closed
 
-These change what gets built, so they are worth answering before Phase 2
-starts rather than during it.
+These were the questions that would have changed what got built. Recorded with
+their final answers, since the project ended before most of them mattered.
 
 1. ~~**Light mode — Phase 2 or later?**~~ **Answered: later.** The current look
    stays; composition safety comes first.
 2. ~~**How far do we push refraction?**~~ **Answered: not now.** Same reason.
-3. **Who is the primary user?** "Developer adding glass to an existing app"
-   and "developer building an entire UI in this language" want different APIs.
-   The docs currently address both. *Recommendation: the second — it is what
-   the vision describes, and it is the harder, more defensible target.*
-4. **npm publish, and under what name?** `glass-ui` is taken on npm — an
-   unrelated `0.0.1` placeholder published as "prototype glas user interface".
-   A scoped name (`@erendenizk/glass-ui`) is free and needs no repo rename.
-   *Recommendation: scoped. Chasing the unscoped name is not worth the effort.*
+3. ~~**Who is the primary user?**~~ **Answered: neither, in the end.** The two
+   candidates were "developer adding glass to an existing app" and "developer
+   building an entire UI in this language". By late 2026 the author could build
+   either on demand without a toolkit, which is what removed the need for the
+   project at all.
+4. ~~**npm publish, and under what name?**~~ **Answered: never published.**
+   `glass-ui` is taken on npm by an unrelated `0.0.1` placeholder, and a scoped
+   name was free. The question is moot: `package.json` is now marked `private`,
+   and the distribution question was settled against npm packages generally —
+   the registry model won, and an npm component library is the wrong shape in
+   2026. See the README.
+
+---
+
+## What a continuation would actually be
+
+Not this roadmap. The phases below assume the product is a React component
+library, and that assumption is what did not survive review.
+
+The three findings that would reorder everything, if anyone restarts:
+
+1. **Generation is solved; verification is not.** The remaining value moved
+   from *supplying* UI to *constraining and checking* it. A system that can
+   tell an agent "this violates the contract" is a product in a way a
+   `<GlassCard>` is not.
+2. **Cross-browser refraction is not reachable.** `backdrop-filter: url(#f)` is
+   Chromium-only, it is not in Interop 2026, and the W3C issue has no vendor
+   traction. Phase 2's deferred "edge refraction" cannot be built as specified.
+3. **The performance model here is aimed at the wrong variable.** `backdrop-filter`
+   cost is dominated by invalidation frequency, not blur radius — so Phase 4's
+   "performance budget in CI" should budget repaints, not pixels of blur. See
+   the amendment in `decisions.md` §5.

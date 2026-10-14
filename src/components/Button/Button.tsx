@@ -1,6 +1,7 @@
 import { forwardRef } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { GlassContainer } from '../../glass-system'
+import { easingPoints, durationSeconds } from '../../glass-system/tokens'
 import { cn } from '../../utils'
 import { variantStyles, sizeStyles, iconOnlySizes, variantGlassDefaults } from './styles'
 import type { ButtonProps } from './types'
@@ -65,12 +66,24 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         aria-busy={loading || undefined}
         whileHover={
           animated
-            ? { scale: 1.015, transition: { duration: 0.2, ease: [0.4, 0.0, 0.2, 1] } }
+            ? {
+                scale: 1.015,
+                transition: {
+                  duration: durationSeconds('short') * 2,
+                  ease: easingPoints.standard,
+                },
+              }
             : undefined
         }
         whileTap={
           animated
-            ? { scale: 0.97, transition: { duration: 0.1, ease: [0.4, 0.0, 1, 1] } }
+            ? {
+                scale: 0.97,
+                transition: {
+                  duration: durationSeconds('short'),
+                  ease: easingPoints.accelerate,
+                },
+              }
             : undefined
         }
         className={cn(

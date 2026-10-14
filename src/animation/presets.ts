@@ -1,15 +1,20 @@
 import type { Variants, Transition } from 'framer-motion'
+import { easingPoints, durationSeconds } from '../glass-system/tokens'
 
 /**
  * Material Design 3 Motion Presets
- * 
- * Simple, professional animations for components
+ *
+ * Simple, professional animations for components.
+ *
+ * Curves and durations come from `glass-system/tokens`. They used to be
+ * re-declared here as literals, which meant the token layer documented a
+ * motion system no component actually read.
  */
 
-// Standard easing curves (converted from CSS to Framer Motion format)
-// Framer Motion uses array format [x1, y1, x2, y2] instead of CSS cubic-bezier
-const standardEasing = [0.4, 0.0, 0.2, 1]
-const emphasizedEasing = [0.2, 0.0, 0, 1]
+// Framer Motion takes the control points as [x1, y1, x2, y2]; the tokens hold
+// them in exactly that form and derive the CSS strings from them.
+const standardEasing = easingPoints.standard
+const emphasizedEasing = easingPoints.emphasized
 
 // Spring physics (Stripe-inspired)
 export const springTransitions = {
@@ -41,17 +46,17 @@ export const springTransitions = {
 // Base transitions
 export const transitions = {
   standard: {
-    duration: 0.3,
+    duration: durationSeconds('medium'),
     ease: standardEasing,
   } as Transition,
-  
+
   quick: {
-    duration: 0.15,
+    duration: durationSeconds('short') * 1.5,
     ease: standardEasing,
   } as Transition,
-  
+
   emphasized: {
-    duration: 0.4,
+    duration: durationSeconds('long') * 0.8,
     ease: emphasizedEasing,
   } as Transition,
   

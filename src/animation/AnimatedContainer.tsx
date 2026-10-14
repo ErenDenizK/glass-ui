@@ -33,13 +33,28 @@ export interface AnimatedContainerProps extends Omit<HTMLMotionProps<'div'>, 'an
  */
 export const AnimatedContainer = forwardRef<HTMLDivElement, AnimatedContainerProps>(
   ({ preset, enableHover, children, animate, ...props }, ref) => {
-    // Get preset config
-    const presetConfig = preset ? animationPresets[preset] : {}
-    
-    // Merge hover if enabled
+    const presetConfig = preset ? animationPresets[preset] : undefined
+    const hoverConfig = enableHover ? animationPresets.hover : undefined
+
+    /*
+     * `enableHover` used to spread the whole hover preset over the chosen one.
+     * Because the hover preset carries `variants` but no `initial`/`animate`,
+     * `preset="fadeIn" enableHover` kept fadeIn's `initial: 'hidden'` while
+     * replacing the variant map with hover's - which has no `hidden` label to
+     * resolve - so the entrance animation silently stopped happening.
+     *
+     * Merging the variant maps keeps both sets of labels reachable, and the
+     * hover states are applied through `whileHover`/`whileTap` rather than by
+     * overwriting the preset's lifecycle props.
+     */
     const finalProps = {
       ...presetConfig,
-      ...(enableHover && animationPresets.hover),
+      ...(hoverConfig && {
+        variants: { ...presetConfig?.variants, ...hoverConfig.variants },
+        transition: presetConfig?.transition ?? hoverConfig.transition,
+        whileHover: hoverConfig.whileHover,
+        whileTap: hoverConfig.whileTap,
+      }),
       ...props,
       ...(animate !== undefined && { animate }),
     }

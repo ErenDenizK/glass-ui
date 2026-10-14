@@ -7,8 +7,9 @@ import path from 'path'
  * Library build.
  *
  * - `dts` emits the .d.ts bundle that package.json#exports.types points at.
- * - `process.env.NODE_ENV` is replaced at build time: the ESM bundle is loaded
- *   directly by browsers/CDNs where `process` does not exist.
+ * - Dev warnings guard on `process` defensively at runtime (see utils/env.ts), so
+ *   nothing is compiled out and the ESM bundle still loads on a CDN where
+ *   `process` does not exist.
  */
 export default defineConfig({
   plugins: [
@@ -19,9 +20,6 @@ export default defineConfig({
       rollupTypes: true,
     }),
   ],
-  define: {
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV ?? 'production'),
-  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -32,7 +30,7 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/index.ts'),
       name: 'GlassUI',
       formats: ['es', 'cjs'],
-      fileName: (format) => `index.${format === 'es' ? 'mjs' : 'js'}`,
+      fileName: (format) => `index.${format === 'es' ? 'mjs' : 'cjs'}`,
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime', 'framer-motion', 'clsx', 'tailwind-merge'],
